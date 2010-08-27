@@ -2,12 +2,14 @@
 
 import os
 import shutil
+import ConfigParser
 try:
     import json
 except ImportError:
     import simplejson as json
 
-from subprocess import check_call, PIPE
+from subprocess import check_call, PIPE, Popen
+from xml.etree import ElementTree
 
 import logging
 logging.basicConfig()
@@ -307,6 +309,72 @@ class Develop(Cmd):
                 )
 
 
+class Checkout(Cmd):
+    """Checkout develop eggs.
+    """
+    def _initialize(self):
+        self.cp = ConfigParser.ConfigParser()
+        self.cp.read('sources.cfg')
+
+    def __call__(self, egg_names=None, pargs=None):
+        if pargs:
+            egg_names = pargs.egg_name
+
+        if egg_names is None:
+            egg_names = ['collective.vdexvocabulary',
+                         'collective.gallery',
+                         'collective.uploadify',
+                         'whoosh']
+
+        srcdir = self.cfg['default_src_dir']
+        if not os.path.isdir(srcdir):
+            os.mkdir(srcdir)
+
+        if not isinstance(egg_names, list):
+            egg_names = [egg_names]
+
+        for egg_name in egg_names:
+            try:
+                source_type, source_url = self.cp.get('sources', egg_name).split(' ', 1)
+            except ConfigParser.NoOptionError:
+                raise Exception('No source found for "' + egg_name + '".')
+
+            if source_type == 'git':
+                check_call(['git', 'clone', source_url, egg_name],
+                    cwd=srcdir)
+
+            elif source_type == 'git-svn':
+                out_, err_ = Popen(['svn', 'log', '--xml',
+                    source_url.split(' ')[0]],
+                    stdout=PIPE, stderr=PIPE).communicate()
+                first_rev = ElementTree.fromstring(out_).findall(
+                    'logentry')[-1].get('revision')
+                args = ['git', 'svn', 'clone']
+                args += source_url.split()
+                args += ['-r', '%s:HEAD' % first_rev, egg_name]
+                check_call(args, cwd=srcdir)
+
+            elif source_type == 'hg':
+                check_call(['hg', 'clone', source_url, egg_name],
+                    cwd=srcdir)
+
+            elif source_type == 'svn':
+                check_call(['svn', 'checkout', source_url, egg_name],
+                    cwd=srcdir)
+
+            else:
+                raise Exception('Wrong type of source (%s!' % source_type)
+
+    def init_argparser(self, parser):
+        """Add our arguments to a parser
+        """
+        parser.add_argument(
+                'egg_name',
+                nargs='+',
+                help='Name of the egg to check out as development egg.',
+                )
+
+
 class CmdSet(object):
     """The mrsd command set.
     """
@@ -327,6 +395,7 @@ class CmdSet(object):
                 unhook=Unhook('unhook', self),
                 hookin=Hookin('hookin', self),
                 develop=Develop('develop', self),
+                checkout=Checkout('checkout', self),
                 )
 
     def save_config(self, cfg_file=None):
