@@ -1,31 +1,37 @@
-from mrs.developer.console_script import CmdSet
+from mrs.developer.mrsd import CmdSet
 
 
-class LoadExtension(object):
+class Extension(object):
+    """Super-class for LoadExtension and UnloadExtension
+
+    Load the mrsd command set, stores reference to buildout.
+    """
+    def __init__(self, buildout=None):
+        self.buildout = buildout
+        self.cmdset = CmdSet()
+
+
+class LoadExtension(Extension):
     """Will inject mrsd develop eggs, if buildout is run
 
-    By this everything will be properly done, e.g:
-        install_requires, entry_point, version pinning conflicts
+    By this we enable changes to setup.py being picked up:
+      - entry-points
+      - requires
 
-
-    Eggs in eggs-customized cannot take influence on these. Just code changes
-    in there.
+    This is currently not possible with simple customized eggs, as buildout
+    does not know about them.
     """
-    def __init__(self, buildout):
-        self.buildout = buildout
-
     def __call__(self):
         develop = self.buildout['buildout']['develop']
-        ours = "src-mrsd/zodict"
+        ours = self.cmdset.cfg['develop']
         self.buildout['buildout']['develop'] = "\n".join([develop, ours])
 
 
-class UnloadExtension(object):
+class UnloadExtension(Extension):
     """Called after config is parsed
     """
     def __call__(self):
-        cmdset = CmdSet()
-        cmdset.cmds['hookin']()
+        self.cmdset.cmds['hookin']()
 
 
 def load(buildout=None):
