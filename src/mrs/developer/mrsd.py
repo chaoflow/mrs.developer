@@ -67,25 +67,21 @@ class Stock(Cmd):
         
 
 class Customize(Cmd):
-    """Create a copy of a stock egg inside the custom-eggs-dir.
+    """Create a copy of a stock egg inside the custom_eggs_dir.
 
     Will be set up as git repo.
     """
-    cmdline_args = [
-            dict(dest="egg_name", help="Name of the egg to customize")
-            ]
-
     def _initialize(self):
         # cfg defaults
         cfg = self.cfg
-        cfg.setdefault('custom-eggs-dir', 'eggs-customized')
+        cfg.setdefault('custom_eggs_dir', 'eggs-customized')
         # create the parent directory
-        if not os.path.isdir(cfg['custom-eggs-dir']):
-            os.mkdir(cfg['custom-eggs-dir'])
+        if not os.path.isdir(cfg['custom_eggs_dir']):
+            os.mkdir(cfg['custom_eggs_dir'])
 
     def __call__(self, egg_name):
         stock_path = self.parent.cmds['stock'](egg_name)
-        custom_path = os.path.join(self.cfg['custom-eggs-dir'], egg_name)
+        custom_path = os.path.join(self.cfg['custom_eggs_dir'], egg_name)
         # copy the stock egg to customized eggs
         shutil.copytree(stock_path, custom_path, symlinks=True)
         # initialize as a git repo and create initial commit
@@ -98,19 +94,26 @@ class Customize(Cmd):
         check_call(['git', 'tag', 'initial'],
                 cwd=custom_path, stdout=PIPE, stderr=PIPE)
 
+    def init_argparser(self, parser):
+        """Add our arguments to a parser
+        """
+        parser.add_argument(
+                'egg_name',
+                nargs='+',
+                help='Name of the egg to copy to %s for customization.' % \
+                            (os.path.join('.', self.cfg['custom_eggs_dir'],)),
+                )
+
 
 class Paths(Cmd):
     """Return the paths to be injected into a script's sys.path.
     """
-    #        dict(dest="script", help="Path to the script to return paths for.")
-    #        ]
-
     def __call__(self, script=None):
         """script is the (relative) path to the script
         """
         # For now we return one list for all
-        paths = [os.path.abspath(os.path.join(self.cfg['custom-eggs-dir'], x)) \
-                for x in os.listdir(self.cfg['custom-eggs-dir'])]
+        paths = [os.path.abspath(os.path.join(self.cfg['custom_eggs_dir'], x)) \
+                for x in os.listdir(self.cfg['custom_eggs_dir'])]
         return paths
 
 
