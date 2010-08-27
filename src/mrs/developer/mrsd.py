@@ -9,6 +9,10 @@ except ImportError:
 
 from subprocess import check_call, PIPE
 
+import logging
+logging.basicConfig()
+logger = logging.getLogger("mrsd")
+
 DEFAULT_CFG_FILE = '.mrsd'
 
 
@@ -29,12 +33,13 @@ class Cmd(object):
         except AttributeError:
             pass
 
+    def init_argparser(self, parser):
+        pass
+
 
 class Stock(Cmd):
     """Return dictionary of stock eggs.
     """
-    cmdline_args = []
-
     def __call__(self, egg_name=None):
         """If no args, return dict of all eggs in stock
         """
@@ -97,7 +102,6 @@ class Customize(Cmd):
 class Paths(Cmd):
     """Return the paths to be injected into a script's sys.path.
     """
-    cmdline_args = []
     #        dict(dest="script", help="Path to the script to return paths for.")
     #        ]
 
@@ -111,7 +115,6 @@ class Paths(Cmd):
 
 
 class HookCmd(Cmd):
-    cmdline_args = []
     start_indicator = '\n### mrs.developer'
     stop_indicator = '### mrs.developer: end.\n'
 
@@ -196,31 +199,116 @@ class Unhook(HookCmd):
 
 
 class Develop(Cmd):
-    """work on a development egg
+    """Handle develop eggs.
     (fetch develop egg, if not there)
-
-    dump config about enabled develop eggs
 
     find scripts that use the egg
 
     find parts for the scripts
 
     buildout install these parts
-
-
-    We have a list of eggs available for development in src-mrsd/
-    Enable/Disable usage of them
     """
-    def __call__(self):
+    def _initialize(self):
+        self.cfg.setdefault('develop', {})
+        self.cfg.setdefault('default_src_dir', 'src-mrsd')
+
+    def __call__(self,
+            egg_names=None,
+            checkout=True,
+            active=True,
+            pargs=None,
+            ):
+        if pargs:
+            egg_names = pargs.egg_name
+            checkout = pargs.checkout
+            active = pargs.active
+
+        if not isinstance(egg_names, list):
+            egg_names = [egg_names]
+
+        eggs = dict()
+        for name in egg_names:
+            if os.path.sep in name:
+                path = name
+                name = name.split(os.path.sep, name)[-1]
+            else:
+                path = os.path.join(self.cfg['default_src_dir'], name)
+            path = os.path.join(os.path.abspath(os.curdir), path)
+            eggs[name] = path
+
+        if checkout:
+            # do checkout, don't fail if it exists
+            pass
+
+        if active:
+            for name, path in eggs.iteritems():
+                # only activate existing eggs
+                if not os.path.isdir(path):
+                    logger.warn(
+                            'Did not activate %s, path does not exist or '
+                            'is not a directory %s.' % (name, path)
+                            )
+                    continue
+                self.cfg['develop'][name] = path
+        else:
+            for name in eggs:
+                self.cfg['develop'].pop(name, None)
+        self.parent.save_config()
+
+    def init_argparser(self, parser):
+        """Add our arguments to a parser
         """
-        """
-        self.cfg['develop'] = "src-mrsd/zodict"
+        parser.add_argument(
+                'egg_name',
+                nargs='+',
+                help='Either (relative) path to development egg or the name '
+                    'of the egg directory within %s' % \
+                            (os.path.join('.', self.cfg['default_src_dir'],)),
+                )
+        #parser.add_argument(
+        #        '--all',
+        #        dest='alleggs',
+        #        action='store_true',
+        #        default=False,
+        #        help='XXX',
+        #        )
+        checkout = parser.add_mutually_exclusive_group()
+        checkout.add_argument(
+                '--checkout',
+                dest='checkout',
+                action='store_true',
+                default=True,
+                help='Checkout the egg, iff not checked out already.',
+                )
+        checkout.add_argument(
+                '--no-checkout',
+                dest='checkout',
+                action='store_false',
+                default=False,
+                help='Do not try to checkout the egg.',
+                )
+        activate = parser.add_mutually_exclusive_group()
+        activate.add_argument(
+                '--activate',
+                dest='active',
+                action='store_true',
+                default=True,
+                help='Activate the development egg.',
+                )
+        activate.add_argument(
+                '--deactivate',
+                dest='active',
+                action='store_false',
+                default=False,
+                help='Deactivate the egg.',
+                )
 
 
 class CmdSet(object):
     """The mrsd command set.
     """
     def __init__(self, cfg_file=DEFAULT_CFG_FILE):
+        self.cfg_file = cfg_file
         try:
             f = open(cfg_file)
         except IOError:
@@ -237,3 +325,9 @@ class CmdSet(object):
                 hookin=Hookin('hookin', self),
                 develop=Develop('develop', self),
                 )
+
+    def save_config(self, cfg_file=None):
+        cfg_file = cfg_file or self.cfg_file
+        f = open(cfg_file, 'w')
+        json.dump(self.cfg, f, indent=4)
+        f.close()

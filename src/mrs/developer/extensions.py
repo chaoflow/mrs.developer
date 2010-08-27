@@ -24,7 +24,7 @@ class LoadExtension(Extension):
     def __call__(self):
         develop = self.buildout['buildout']['develop']
         ours = self.cmdset.cfg['develop']
-        self.buildout['buildout']['develop'] = "\n".join([develop, ours])
+        self.buildout['buildout']['develop'] = str("\n".join([develop] + ours))
 
 
 class UnloadExtension(Extension):
