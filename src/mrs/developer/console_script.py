@@ -3,21 +3,29 @@
 import argparse
 import os
 import shutil
+import ConfigParser
+
 try:
     import json
 except ImportError:
     import simplejson as json
 
-from subprocess import check_call, PIPE
+from xml.etree import ElementTree
+from subprocess import check_call
+from subprocess import PIPE
+from subprocess import Popen
+
 
 DEFAULT_CFG_FILE = '.mrsd'
 
 
 class Cmd(object):
     """An abstract command
-    
+
     subclasses need to implement __call__ and may implement _initialize
     """
+    cmdline_args = []
+
     @property
     def cfg(self):
         return self.parent.cfg
@@ -60,7 +68,7 @@ class Stock(Cmd):
         start = script.find(start_str) + len(start_str)
         end = script.find(']', start)
         return [x.split("'")[1] for x in script[start:end].split()]
-        
+
 
 class Customize(Cmd):
     """Create a copy of a stock egg inside the custom-eggs-dir.
@@ -134,7 +142,7 @@ class Hookin(HookCmd):
     """Hook into a script's sys.path generation, renew if hooked already.
     """
     start_str = 'sys.path[0:0] = ['
-    
+
     hook = \
 """%s: inject our paths upfront
 try:
@@ -162,6 +170,8 @@ if paths:
             f = open(script, 'r')
             content = f.read()
             f.close()
+        if self.start_str not in content:
+            return
         idx = content.find(self.start_str) + len(self.start_str)
         idx = content.find(']', idx)+2
         hooked = content[:idx]
@@ -214,6 +224,57 @@ class Develop(Cmd):
         self.cfg['develop'] = "src-mrsd/zodict"
 
 
+class Checkout(Cmd):
+    """
+    """
+
+    src_directory = 'src-mrsd'
+    def __call__(self, egg_names=['collective.vdexvocabulary',
+                                  'collective.gallery',
+                                  'collective.uploadify',
+                                  'whoosh']):
+
+        cp = ConfigParser.ConfigParser()
+        cp.read('sources.cfg')
+
+        if not os.path.exists(self.src_directory):
+            os.mkdir(self.src_directory)
+
+        for egg_name in egg_names:
+
+            try:
+                source_type, source_url = cp.get('sources', egg_name).split(' ', 1)
+            except Exception, e:
+                raise Exception('No source found for "' + egg_name + '".')
+
+            if source_type == 'git':
+                check_call(['git', 'clone', source_url, egg_name],
+                    cwd=self.src_directory, stdout=PIPE, stderr=PIPE)
+
+            elif source_type == 'git-svn':
+                out_, err_ = Popen(['svn', 'log', '--xml',
+                    source_url.split(' ')[0]],
+                    stdout=PIPE, stderr=PIPE).communicate()
+                first_rev = ElementTree.fromstring(out_).findall(
+                    'logentry')[-1].get('revision')
+                args = ['git', 'svn', 'clone']
+                args += source_url.split()
+                args += ['-r', '%s:HEAD' % first_rev, egg_name]
+                check_call(args, cwd=self.src_directory,
+                    stdout=PIPE, stderr=PIPE)
+
+            elif source_type == 'hg':
+                check_call(['hg', 'clone', source_url, egg_name],
+                    cwd=self.src_directory, stdout=PIPE, stderr=PIPE)
+
+            elif source_type == 'svn':
+                check_call(['svn', 'checkout', source_url, egg_name],
+                    cwd=self.src_directory, stdout=PIPE, stderr=PIPE)
+
+            else:
+                raise Exception('Wrong type of source (%s!' % source_type)
+
+
 class CmdSet(object):
     """The mrsd command set
     """
@@ -233,6 +294,7 @@ class CmdSet(object):
                 unhook=Unhook('unhook', self),
                 hookin=Hookin('hookin', self),
                 develop=Develop('develop', self),
+                checkout=Checkout('checkout', self),
                 )
 
 
