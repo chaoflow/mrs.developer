@@ -1,0 +1,7 @@
+Extensions are loaded before eggs. You need once without loading the extension
+to register the dev egg and then run buildout normally:
+
+    % ./bin/buildout -c init.cfg
+    ...
+    % ./bin/buildout
+    ...
