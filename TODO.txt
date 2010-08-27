@@ -1,0 +1,11 @@
+Todo
+====
+
+- per interpreter develop?
+- per interpreter customize?
+- change into customized eggs dir
+- hooks to be executed after changing into customized egg directory
+  (e.g.: git l; git s)
+- plone.reload support
+
+

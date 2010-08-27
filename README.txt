@@ -100,15 +100,6 @@ control as it would limit you the  is
 In order to make changes persistent
 
 
-Todo
-====
-
-- change into customized eggs dir
-- hooks to be executed after changing into customized egg directory
-  (e.g.: git l; git s)
-- plone.reload support
-
-
 Limitations
 ===========
 
