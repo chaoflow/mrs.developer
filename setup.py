@@ -39,7 +39,7 @@ setup(name='mrs.developer',
               'mrsd = mrs.developer.console_script:mrsd',
               ],
 
-          #'zc.buildout.extension': ['ext = mrs.developer.extensions:load'],
+          'zc.buildout.extension': ['ext = mrs.developer.extensions:load'],
 
           # unload extension: dump all working_sets info, hookin
           'zc.buildout.unloadextension': ['ext = mrs.developer.extensions:unload'],

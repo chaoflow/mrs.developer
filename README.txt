@@ -20,28 +20,11 @@ mrs.developer is a:
   - buildout extension.
   - a 
 
-Use cases
-=========
-
-Debbugging
-----------
-
-XXX: mrs.developer is fast! To get a copy of an egg ready for customizations 
-buildout.
-
-
-Managing patchsets
-------------------
-
-``eggs-patches/<egg_name
-
-Handing over to mr.developer
-----------------------------
 
 
 
 Custom copy of egg
-------------------
+==================
 
 Normally eggs are either in ``eggs/`` directory or a buildout cache. Either
 way, in order to make changes to an egg (e.g. to set a breakpoint), a copy of
@@ -120,6 +103,7 @@ In order to make changes persistent
 Todo
 ====
 
+- change into customized eggs dir
 - hooks to be executed after changing into customized egg directory
   (e.g.: git l; git s)
 - plone.reload support

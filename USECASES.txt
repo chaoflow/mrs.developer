@@ -1,0 +1,33 @@
+Use cases
+=========
+
+Customizing eggs
+
+- code (covered)
+- setup.py
+  - entry-points
+  - requires (default, test)
+  - version
+
+
+Changing an eggs code
+---------------------
+
+
+Debbugging
+----------
+
+XXX: mrs.developer is fast! To get a copy of an egg ready for customizations 
+buildout.
+
+
+Managing patchsets
+------------------
+
+XXX:
+``eggs-patches/<egg_name
+
+
+Change egg-info
+
+- 

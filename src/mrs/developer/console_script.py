@@ -10,7 +10,7 @@ except ImportError:
 
 from subprocess import check_call, PIPE
 
-DEFAULT_CFG_FILE = '.mrsd.cfg'
+DEFAULT_CFG_FILE = '.mrsd'
 
 
 class Cmd(object):
@@ -131,7 +131,7 @@ class HookCmd(Cmd):
 
 
 class Hookin(HookCmd):
-    """Hook into a script's sys.path generation.
+    """Hook into a script's sys.path generation, renew if hooked already.
     """
     start_str = 'sys.path[0:0] = ['
     
@@ -144,8 +144,8 @@ except ImportError:
 from subprocess import Popen, PIPE
 
 paths = Popen(
-       ["mrsd", "paths", "%s"],
-       stdout=PIPE
+       ["mrsd", "paths"],
+       stdout=PIPE,
        ).communicate()[0]
 if paths:
     sys.path[0:0] = json.loads(paths)
@@ -166,7 +166,7 @@ if paths:
         idx = content.find(']', idx)+2
         hooked = content[:idx]
         hooked += self.hook % \
-                (self.start_indicator, script, self.stop_indicator)
+                (self.start_indicator, self.stop_indicator)
         hooked += content[idx:]
         f = open(script, 'w')
         f.write(hooked)
@@ -196,6 +196,24 @@ class Unhook(HookCmd):
     _cmd = _unhook
 
 
+class Develop(Cmd):
+    """work on a development egg
+    (fetch develop egg, if not there)
+
+    dump config about enabled develop eggs
+
+    find scripts that use the egg
+
+    find parts for the scripts
+
+    buildout install these parts
+    """
+    def __call__(self):
+        """
+        """
+        self.cfg['develop'] = "src-mrsd/zodict"
+
+
 class CmdSet(object):
     """The mrsd command set
     """
@@ -214,6 +232,7 @@ class CmdSet(object):
                 paths=Paths('paths', self),
                 unhook=Unhook('unhook', self),
                 hookin=Hookin('hookin', self),
+                develop=Develop('develop', self),
                 )
 
 
