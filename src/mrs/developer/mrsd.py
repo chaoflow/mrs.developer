@@ -164,6 +164,8 @@ if paths:
             f = open(script, 'r')
             content = f.read()
             f.close()
+        if self.start_str not in content:
+            return
         idx = content.find(self.start_str) + len(self.start_str)
         idx = content.find(']', idx)+2
         hooked = content[:idx]

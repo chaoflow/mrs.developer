@@ -31,6 +31,7 @@ setup(name='mrs.developer',
       ],
       extras_require={
           'test': [
+              'plone.testing',
               'interlude',
           ]
       },
