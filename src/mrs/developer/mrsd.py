@@ -30,10 +30,14 @@ class Stock(Cmd):
     def __call__(self, pargs=None):
         """Dump all known eggs
         """
+        scriptdir = os.path.join(
+                self.root or os.curdir,
+                self.cfg['scripts_dir']
+                )
         stock = dict()
         paths = set()
-        for script in [x for x in os.listdir('bin') if not x[0] == '.']:
-            scriptpath = os.path.join('bin', script)
+        for script in [x for x in os.listdir(scriptdir) if not x[0] == '.']:
+            scriptpath = os.path.join(scriptdir, script)
             f = open(scriptpath)
             paths = self._paths(f.read())
             f.close()
@@ -59,15 +63,15 @@ class Customize(Cmd):
     """
     def _initialize(self):
         # cfg defaults
-        cfg = self.cfg
-        cfg.setdefault('custom_eggs_dir', 'eggs-customized')
-        # create the parent directory
-        if not os.path.isdir(cfg['custom_eggs_dir']):
-            os.mkdir(cfg['custom_eggs_dir'])
+        self.cfg.setdefault('custom_eggs_dir', 'eggs-customized')
 
     def __call__(self, egg_names=None, pargs=None):
         if pargs is not None:
             egg_names = pargs.egg_name
+        custom_eggs_dir = os.path.join(
+                self.root or os.path.curdir,
+                self.cfg['custom_eggs_dir'],
+                )
         eggspaces = self.parent.stock()
         if not isinstance(egg_names, list):
             egg_names = [egg_names]
@@ -81,7 +85,10 @@ class Customize(Cmd):
                     break
             else:
                 raise ValueError(u"Egg %s not in stock" % (egg_name,))
-            custom_path = os.path.join(self.cfg['custom_eggs_dir'], egg_name)
+            custom_path = os.path.join(custom_eggs_dir, egg_name)
+            # create the parent directory
+            if not os.path.isdir(custom_eggs_dir):
+                os.mkdir(custom_eggs_dir)
             # copy the stock egg to customized eggs
             shutil.copytree(stock_path, custom_path, symlinks=True)
             # initialize as a git repo and create initial commit
@@ -97,8 +104,7 @@ class Customize(Cmd):
         parser.add_argument(
                 'egg_name',
                 nargs='+',
-                help='Name of the egg to copy to %s for customization.' % \
-                            (os.path.join('.', self.cfg['custom_eggs_dir'],)),
+                help='Name of the egg to customize.',
                 )
 
 
@@ -123,7 +129,7 @@ class HookCmd(Cmd):
     stop_indicator = '### mrs.developer: end.\n'
 
     def _initialize(self):
-        self.cfg['scripts_dir'] = 'bin'
+        self.cfg.setdefault('scripts_dir', 'bin')
 
     def __call__(self, pargs=None):
         """If no arguments are specified, we hook into all known scripts
