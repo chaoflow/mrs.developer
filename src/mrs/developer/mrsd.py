@@ -60,10 +60,12 @@ class Customize(Cmd):
     """Create a copy of a stock egg inside the custom_eggs_dir.
 
     Will be set up as git repo.
+
+    Understood eggspaces are: name of an egg, patched (eggs we have patches for).
     """
     def _initialize(self):
         # cfg defaults
-        self.cfg.setdefault('custom_eggs_dir', 'eggs-customized')
+        self.cfg.setdefault('custom_eggs_dir', 'eggs-mrsd')
 
     def __call__(self, egg_names=None, pargs=None):
         if pargs is not None:
@@ -102,9 +104,9 @@ class Customize(Cmd):
         """Add our arguments to a parser
         """
         parser.add_argument(
-                'egg_name',
+                'eggspace',
                 nargs='+',
-                help='Name of the egg to customize.',
+                help='Eggspace to customize.',
                 )
 
 
