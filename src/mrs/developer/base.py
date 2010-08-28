@@ -1,7 +1,16 @@
+from subprocess import check_call as real_check_call
 
 import logging
-logging.basicConfig()
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("mrsd")
+
+
+def check_call(*args, **kws):
+    """wrap subprocess.check_call for logging
+    """
+    logger.info(args, kws)
+    real_check_call(*args, **kws)
+
 
 class Cmd(object):
     """An abstract command

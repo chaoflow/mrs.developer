@@ -2,7 +2,6 @@
 
 import os
 import shutil
-from subprocess import check_call
 from subprocess import PIPE
 from subprocess import Popen
 try:
@@ -11,6 +10,7 @@ except ImportError:
     import simplejson as json
 
 from mrs.developer.base import Cmd
+from mrs.developer.base import check_call
 from mrs.developer.develop import Checkout
 from mrs.developer.develop import Develop
 
@@ -82,14 +82,11 @@ class Customize(Cmd):
             # copy the stock egg to customized eggs
             shutil.copytree(stock_path, custom_path, symlinks=True)
             # initialize as a git repo and create initial commit
-            check_call(['git', 'init'],
-                    cwd=custom_path, stdout=PIPE, stderr=PIPE)
-            check_call(['git', 'add', '.'],
-                    cwd=custom_path, stdout=PIPE, stderr=PIPE)
+            check_call(['git', 'init'], cwd=custom_path)
+            check_call(['git', 'add', '.'], cwd=custom_path)
             check_call(['git', 'commit', '-m', 'initial from: %s' % (stock_path,)],
-                    cwd=custom_path, stdout=PIPE, stderr=PIPE)
-            check_call(['git', 'tag', 'initial'],
-                    cwd=custom_path, stdout=PIPE, stderr=PIPE)
+                    cwd=custom_path)
+            check_call(['git', 'tag', 'initial'], cwd=custom_path)
 
     def init_argparser(self, parser):
         """Add our arguments to a parser
