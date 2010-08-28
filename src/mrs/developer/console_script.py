@@ -20,7 +20,7 @@ class ConsoleScript(CmdSet):
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                 )
         subparsers = parser.add_subparsers(help='cmd --help')
-        for name, cmd in self.cmds.items():
+        for name, cmd in self.iteritems():
             cmd_parser = subparsers.add_parser(
                     name,
                     help=cmd.__doc__,

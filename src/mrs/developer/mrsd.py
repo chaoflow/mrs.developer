@@ -22,7 +22,7 @@ DEFAULT_CFG_FILE = '.mrsd'
 class Stock(Cmd):
     """Return dictionary of stock eggs.
     """
-    def __call__(self, egg_name=None):
+    def __call__(self, egg_name=None, pargs=None):
         """If no args, return dict of all eggs in stock
         """
         paths = set()
@@ -205,6 +205,20 @@ class CmdSet(object):
                 develop=Develop('develop', self),
                 checkout=Checkout('checkout', self),
                 )
+
+    def __getattr__(self, name):
+        cmds = object.__getattr(self, 'cmds')
+        if name in cmds:
+            return cmds[name]
+
+    def __getitem__(self, name):
+        return self.cmds[name]
+
+    def __iter__(self):
+        return self.cmds.__iter__()
+
+    def iteritems(self):
+        return self.cmds.iteritems()
 
     def save_config(self, cfg_file=None):
         cfg_file = cfg_file or self.cfg_file
