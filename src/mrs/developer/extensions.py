@@ -23,7 +23,7 @@ class LoadExtension(Extension):
     """
     def __call__(self):
         develop = self.buildout['buildout']['develop']
-        ours = self.cmdset.cfg['develop']
+        ours = self.cmdset.cfg['develop'].values()
         self.buildout['buildout']['develop'] = str("\n".join([develop] + ours))
 
 
