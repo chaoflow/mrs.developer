@@ -316,9 +316,13 @@ class Checkout(Cmd):
         self.cp = ConfigParser.ConfigParser()
         self.cp.read('sources.cfg')
 
-    def __call__(self, egg_names=None, pargs=None):
+    def __call__(self, egg_names=None, alleggs=False, pargs=None):
         if pargs:
             egg_names = pargs.egg_name
+            alleggs = pargs.alleggs
+
+        if egg_names is None and not alleggs:
+            raise ValueError(u"Either list eggs or --all is needed.")
 
         if egg_names is None:
             egg_names = ['collective.vdexvocabulary',
@@ -370,8 +374,16 @@ class Checkout(Cmd):
         """
         parser.add_argument(
                 'egg_name',
-                nargs='+',
-                help='Name of the egg to check out as development egg.',
+                nargs='*',
+                help='Name of the egg to check out as development egg. '
+                    'If not specified, --all is needed',
+                )
+        parser.add_argument(
+                '--all',
+                dest='alleggs',
+                action='store_true',
+                default=False,
+                help='Checkout all development eggs specified in sources.cfg.',
                 )
 
 
