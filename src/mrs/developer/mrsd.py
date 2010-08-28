@@ -220,8 +220,16 @@ class Init(Cmd):
 class CmdSet(object):
     """The mrsd command set.
     """
+    @property
+    def root(self):
+        try:
+            return os.path.dirname(self.cfg_file)
+        except AttributeError:
+            return None
+
     def __init__(self):
         self._load_config()
+        logger.debug(u"Rooted at %s." % (self.root,))
         self.cmds = odict([
                 ('init', Init('init', self)),
                 ('stock', Stock('stock', self)),
@@ -234,7 +242,10 @@ class CmdSet(object):
                 ])
 
     def __getattr__(self, name):
-        cmds = object.__getattribute__(self, 'cmds')
+        try:
+            cmds = object.__getattribute__(self, 'cmds')
+        except AttributeError:
+            return object.__getattribute__(self, name)
         if name in cmds:
             return cmds[name]
 
