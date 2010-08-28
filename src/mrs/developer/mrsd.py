@@ -10,12 +10,6 @@ try:
 except ImportError:
     import simplejson as json
 
-from xml.etree import ElementTree
-
-import logging
-logging.basicConfig()
-logger = logging.getLogger("mrsd")
-
 from mrs.developer.base import Cmd
 from mrs.developer.develop import Checkout
 from mrs.developer.develop import Develop
@@ -53,7 +47,7 @@ class Stock(Cmd):
         start = script.find(start_str) + len(start_str)
         end = script.find(']', start)
         return [x.split("'")[1] for x in script[start:end].split()]
-        
+
 
 class Customize(Cmd):
     """Create a copy of a stock egg inside the custom_eggs_dir.
@@ -142,7 +136,7 @@ class Hookin(HookCmd):
     """Hook into a script's sys.path generation, renew if hooked already.
     """
     start_str = 'sys.path[0:0] = ['
-    
+
     hook = \
 """%s: inject our paths upfront
 try:

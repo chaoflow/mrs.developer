@@ -1,5 +1,12 @@
+*.swp
+*.pyc
 /.mrsd
 /bin/
 /eggs/
 /eggs-customized/
 /src-mrsd/
+.installed.cfg
+develop-eggs/
+include/
+lib/
+src/mrs.developer.egg-info/

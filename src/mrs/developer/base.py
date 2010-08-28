@@ -1,6 +1,11 @@
+
+import logging
+logging.basicConfig()
+logger = logging.getLogger("mrsd")
+
 class Cmd(object):
     """An abstract command
-    
+
     subclasses need to implement __call__ and may implement _initialize
     """
     @property

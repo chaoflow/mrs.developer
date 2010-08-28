@@ -1,89 +1,121 @@
-import ConfigParser
 import os
-import shutil
+import ConfigParser
+from xml.etree import ElementTree
 
 from subprocess import check_call
 from subprocess import PIPE
 from subprocess import Popen
 
 from mrs.developer.base import Cmd
+from mrs.developer.base import logger
+
+NAMESPACES = ['default', 'local', 'global']
 
 
 class Checkout(Cmd):
     """Checkout develop eggs.
     """
+
     def _initialize(self):
-        self.cp = ConfigParser.ConfigParser()
-        self.cp.read('sources.cfg')
+        local_cp = ConfigParser.ConfigParser()
+        local_cp.read('sources.cfg')
 
-    def __call__(self, egg_names=None, alleggs=False, pargs=None):
+        self.namespaces = dict(default=dict())
+        for namespace, cp in [('local', local_cp),]:
+            self.namespaces[namespace] = dict()
+            if cp.has_section('sources'):
+                for source_name, source_path in cp.items('sources'):
+                    self.namespaces[namespace][source_name] = source_path
+            if cp.has_option('buildout', 'auto-checkout'):
+                for source in cp.get('buildout', 'auto-checkout').split():
+                    if source in self.namespaces[namespace]:
+                        self.namespaces['default'][source] = \
+                                self.namespaces[namespace][source]
+
+    def __call__(self, sourcespaces=None, pargs=None):
         if pargs:
-            egg_names = pargs.egg_name
-            alleggs = pargs.alleggs
+            sourcespaces= pargs.sourcespaces
 
-        if egg_names is None and not alleggs:
-            raise ValueError(u"Either list eggs or --all is needed.")
-
-        if egg_names is None:
-            egg_names = ['collective.vdexvocabulary',
-                         'collective.gallery',
-                         'collective.uploadify',
-                         'whoosh']
+        if not sourcespaces:
+            # TODO: should list all the local sources?
+            raise
 
         srcdir = self.cfg['default_src_dir']
         if not os.path.isdir(srcdir):
             os.mkdir(srcdir)
 
-        if not isinstance(egg_names, list):
-            egg_names = [egg_names]
+        if not isinstance(sourcespaces, list):
+            sourcespaces = sourcespaces.split()
 
-        for egg_name in egg_names:
-            try:
-                source_type, source_url = self.cp.get('sources', egg_name).split(' ', 1)
-            except ConfigParser.NoOptionError:
-                raise Exception('No source found for "' + egg_name + '".')
+        for sourcespace in sourcespaces:
+            namespace, source = '', ''
 
-            if source_type == 'git':
-                check_call(['git', 'clone', source_url, egg_name],
-                    cwd=srcdir)
-
-            elif source_type == 'git-svn':
-                out_, err_ = Popen(['svn', 'log', '--xml',
-                    source_url.split(' ')[0]],
-                    stdout=PIPE, stderr=PIPE).communicate()
-                first_rev = ElementTree.fromstring(out_).findall(
-                    'logentry')[-1].get('revision')
-                args = ['git', 'svn', 'clone']
-                args += source_url.split()
-                args += ['-r', '%s:HEAD' % first_rev, egg_name]
-                check_call(args, cwd=srcdir)
-
-            elif source_type == 'hg':
-                check_call(['hg', 'clone', source_url, egg_name],
-                    cwd=srcdir)
-
-            elif source_type == 'svn':
-                check_call(['svn', 'checkout', source_url, egg_name],
-                    cwd=srcdir)
-
+            if ':' in sourcespace:
+                namespace, source = sourcespace.splir(':')
+                if namespace not in self.namespaces.keys():
+                    raise Exception('Non existing namespace selected. ("' + \
+                                     namespace + '")')
             else:
-                raise Exception('Wrong type of source (%s!' % source_type)
+                if sourcespace in self.namespaces:
+                    namespace = sourcespace
+                else:
+                    source = sourcespace
+
+            if namespace:
+                self._sources_for_namespace(source, self.namespaces[namespace])
+            elif source:
+                for namespace in ['local', 'global']:
+                    if namespace in self.namespaces:
+                        self._sources_for_namespace(source,
+                                                self.namespaces[namespace])
+
+    def _sources_for_namespace(self, source, namespace):
+        if source:
+            if source in namespace:
+                self._run_checkout(source, namespace[source])
+            else:
+                raise Exception('Wrong source specified: "' + source + '"')
+        else:
+            for source in namespace:
+                self._run_checkout(source, namespace[source])
+
+    def _run_checkout(self, source_name, source):
+        srcdir = self.cfg['default_src_dir']
+        source_type, source_url = source.split(' ', 1)
+
+        if source_type == 'git':
+            check_call(['git', 'clone', source_url, source_name], cwd=srcdir)
+
+        elif source_type == 'git-svn':
+            out_, err_ = Popen(['svn', 'log', '--xml',
+                source_url.split(' ')[0]],
+                stdout=PIPE, stderr=PIPE).communicate()
+            first_rev = ElementTree.fromstring(out_).findall(
+                'logentry')[-1].get('revision')
+            args = ['git', 'svn', 'clone']
+            args += source_url.split()
+            args += ['-r', '%s:HEAD' % first_rev, source_name]
+            check_call(args, cwd=srcdir)
+
+        elif source_type == 'hg':
+            check_call(['hg', 'clone', source_url, source_name],
+                cwd=srcdir)
+
+        elif source_type == 'svn':
+            check_call(['svn', 'checkout', source_url, source_name],
+                cwd=srcdir)
+
+        else:
+            raise Exception('Wrong type of source (%s!' % source_type)
 
     def init_argparser(self, parser):
         """Add our arguments to a parser
         """
         parser.add_argument(
-                'egg_name',
-                nargs='*',
-                help='Name of the egg to check out as development egg. '
-                    'If not specified, --all is needed',
-                )
-        parser.add_argument(
-                '--all',
-                dest='alleggs',
-                action='store_true',
-                default=False,
-                help='Checkout all development eggs specified in sources.cfg.',
+                'sourcespaces',
+                nargs='+',
+                help='List of eggspaces to chekcout. e.g.: '
+                     'mrsd checkout <namespace>:',
                 )
 
 
@@ -126,8 +158,7 @@ class Develop(Cmd):
             eggs[name] = path
 
         if checkout:
-            # do checkout, don't fail if it exists
-            pass
+            Checkout('checkout', self)(egg_names)
 
         if active:
             for name, path in eggs.iteritems():
@@ -139,6 +170,8 @@ class Develop(Cmd):
                             )
                     continue
                 self.cfg['develop'][name] = path
+                import pdb; pdb.set_trace()
+                check_call([os.path.join('bin', 'buildout'), 'install', ])
         else:
             for name in eggs:
                 self.cfg['develop'].pop(name, None)
