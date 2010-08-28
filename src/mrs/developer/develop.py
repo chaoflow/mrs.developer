@@ -7,6 +7,7 @@ from subprocess import PIPE
 from subprocess import Popen
 
 from mrs.developer.base import Cmd
+from mrs.developer.base import logger
 
 NAMESPACES = ['default', 'local', 'global']
 
@@ -14,6 +15,7 @@ NAMESPACES = ['default', 'local', 'global']
 class Checkout(Cmd):
     """Checkout develop eggs.
     """
+
     def _initialize(self):
         local_cp = ConfigParser.ConfigParser()
         local_cp.read('sources.cfg')
@@ -63,7 +65,8 @@ class Checkout(Cmd):
                 self._sources_for_namespace(source, self.namespaces[namespace])
             elif source:
                 for namespace in ['local', 'global']:
-                    self._sources_for_namespace(source,
+                    if namespace in self.namespaces:
+                        self._sources_for_namespace(source,
                                                 self.namespaces[namespace])
 
     def _sources_for_namespace(self, source, namespace):
@@ -81,8 +84,7 @@ class Checkout(Cmd):
         source_type, source_url = source.split(' ', 1)
 
         if source_type == 'git':
-            check_call(['git', 'clone', source_url, source_name],
-                cwd=srcdir)
+            check_call(['git', 'clone', source_url, source_name], cwd=srcdir)
 
         elif source_type == 'git-svn':
             out_, err_ = Popen(['svn', 'log', '--xml',
@@ -156,8 +158,7 @@ class Develop(Cmd):
             eggs[name] = path
 
         if checkout:
-            # do checkout, don't fail if it exists
-            pass
+            Checkout('checkout', self)(egg_names)
 
         if active:
             for name, path in eggs.iteritems():
@@ -169,6 +170,8 @@ class Develop(Cmd):
                             )
                     continue
                 self.cfg['develop'][name] = path
+                import pdb; pdb.set_trace()
+                check_call([os.path.join('bin', 'buildout'), 'install', ])
         else:
             for name in eggs:
                 self.cfg['develop'].pop(name, None)
