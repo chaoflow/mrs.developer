@@ -27,6 +27,7 @@ setup(name='mrs.developer',
       install_requires=[
           'setuptools',
           'argparse',
+          'odict',
       ],
       extras_require={
           'test': [

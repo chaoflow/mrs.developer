@@ -1,7 +1,6 @@
 from subprocess import check_call as real_check_call
 
 import logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("mrsd")
 
 
@@ -31,5 +30,3 @@ class Cmd(object):
 
     def init_argparser(self, parser):
         pass
-
-

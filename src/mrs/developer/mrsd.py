@@ -9,8 +9,11 @@ try:
 except ImportError:
     import simplejson as json
 
+from odict import odict
+
 from mrs.developer.base import Cmd
 from mrs.developer.base import check_call
+from mrs.developer.base import logger
 from mrs.developer.develop import Checkout
 from mrs.developer.develop import Develop
 
@@ -195,28 +198,38 @@ class Unhook(HookCmd):
     _cmd = _unhook
 
 
+class Init(Cmd):
+    """Create a default configuration in the current directory.
+
+    This defines a mrsd root, commands in the subtree will find and use it.
+    """
+    def __call__(self, path=None, pargs=None):
+        cfg_file = os.path.abspath(DEFAULT_CFG_FILE)
+        reinit = os.path.isfile(cfg_file)
+        self.parent._save_config(cfg_file)
+        if reinit:
+            logger.info(u"Reinitialized mrsd root at %s." % \
+                    (os.path.abspath(os.curdir)))
+        else:
+            logger.info(u"Initialized mrsd root at %s." % \
+                    (os.path.abspath(os.curdir)))
+
+
 class CmdSet(object):
     """The mrsd command set.
     """
-    def __init__(self, cfg_file=DEFAULT_CFG_FILE):
-        self.cfg_file = cfg_file
-        try:
-            f = open(cfg_file)
-        except IOError:
-            self.cfg = dict()
-        else:
-            self.cfg = json.load(f)
-            f.close()
-
-        self.cmds = dict(
-                stock=Stock('stock', self),
-                customize=Customize('customize', self),
-                paths=Paths('paths', self),
-                unhook=Unhook('unhook', self),
-                hookin=Hookin('hookin', self),
-                develop=Develop('develop', self),
-                checkout=Checkout('checkout', self),
-                )
+    def __init__(self):
+        self._load_config()
+        self.cmds = odict([
+                ('init', Init('init', self)),
+                ('stock', Stock('stock', self)),
+                ('customize', Customize('customize', self)),
+                ('paths', Paths('paths', self)),
+                ('unhook', Unhook('unhook', self)),
+                ('hookin', Hookin('hookin', self)),
+                ('develop', Develop('develop', self)),
+                ('checkout', Checkout('checkout', self)),
+                ])
 
     def __getattr__(self, name):
         cmds = object.__getattribute__(self, 'cmds')
@@ -232,8 +245,31 @@ class CmdSet(object):
     def iteritems(self):
         return self.cmds.iteritems()
 
-    def save_config(self, cfg_file=None):
+    def _load_config(self, cfg_file=DEFAULT_CFG_FILE):
+        """Load config from curdir or parents
+        """
+        cfg_file = os.path.abspath(cfg_file)
+        try:
+            f = open(cfg_file)
+        except IOError:
+            # check in parent dir
+            parent_cfg_file = os.path.dirname(cfg_file)
+            if parent_cfg_file == cfg_file:
+                logger.debug("Running without config file")
+                # reached the root without config, running without config file
+                self.cfg = dict()
+                self.cfg_file = None
+                return
+            self._load_config(parent_cfg_file)
+        else:
+            self.cfg = json.load(f)
+            self.cfg_file = cfg_file
+            f.close()
+
+    def _save_config(self, cfg_file=None):
         cfg_file = cfg_file or self.cfg_file
+        cfg_file = os.path.abspath(cfg_file)
         f = open(cfg_file, 'w')
         json.dump(self.cfg, f, indent=4)
         f.close()
+        logger.debug("Wrote config to %s." % (cfg_file,))

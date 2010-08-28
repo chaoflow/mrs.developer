@@ -6,6 +6,7 @@ try:
 except ImportError:
     import simplejson as json
 
+from mrs.developer.base import logging
 from mrs.developer.mrsd import CmdSet
 
 
@@ -19,6 +20,13 @@ class ConsoleScript(CmdSet):
                 prog=self.name,
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                 )
+        parser.add_argument(
+                '-d', '--debug',
+                dest='debug',
+                action='store_true',
+                default=False,
+                help="Enable debugging output.",
+                )
         subparsers = parser.add_subparsers(help='cmd --help')
         for name, cmd in self.iteritems():
             cmd_parser = subparsers.add_parser(
@@ -29,6 +37,10 @@ class ConsoleScript(CmdSet):
             cmd.init_argparser(cmd_parser)
             cmd_parser.set_defaults(cmd=cmd)
         pargs = parser.parse_args()
+        if pargs.debug:
+            logging.basicConfig(level=logging.DEBUG)
+        else:
+            logging.basicConfig(level=logging.INFO)
         output = pargs.cmd(pargs=pargs)
         if output:
             print json.dumps(output, indent=4, sort_keys=True)
