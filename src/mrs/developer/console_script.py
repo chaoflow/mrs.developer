@@ -41,6 +41,11 @@ class ConsoleScript(CmdSet):
             logging.basicConfig(level=logging.DEBUG)
         else:
             logging.basicConfig(level=logging.INFO)
+        try:
+            self.load_config()
+        except RuntimeError:
+            # we run without a config file
+            pass
         logger.debug(u"Rooted at %s." % (self.root,))
         output = pargs.cmd(pargs=pargs)
         if output:

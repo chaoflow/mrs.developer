@@ -118,18 +118,25 @@ class HookCmd(Cmd):
     start_indicator = '\n### mrs.developer'
     stop_indicator = '### mrs.developer: end.\n'
 
+    def _initialize(self):
+        self.cfg['scripts_dir'] = 'bin'
+
     def __call__(self, pargs=None):
         """If no arguments are specified, we hook into all known scripts
 
         except buildout and mrsd
         """
-        for name in os.listdir('./bin'):
+        scriptdir = os.path.join(self.root, self.cfg['scripts_dir'])
+        for name in os.listdir(scriptdir):
+            script = os.path.join(scriptdir, name)
             if name in ('buildout', 'mrsd'):
+                logger.debug("Not hooking into %s." % (script,))
                 continue
             if name[0] == '.':
+                logger.debug("Not hooking into %s." % (script,))
                 continue
             # Will be either hookin or unhook
-            self._cmd('./bin/' + name)
+            self._cmd(script)
 
 
 class Hookin(HookCmd):
@@ -165,6 +172,7 @@ if paths:
             content = f.read()
             f.close()
         if self.start_str not in content:
+            logger.debug("Not hooking into %s." % (script,))
             return
         idx = content.find(self.start_str) + len(self.start_str)
         idx = content.find(']', idx)+2
@@ -175,6 +183,7 @@ if paths:
         f = open(script, 'w')
         f.write(hooked)
         f.close()
+        logger.info("Hooked into %s." % (script,))
 
     _cmd = _hookin
 
@@ -196,6 +205,7 @@ class Unhook(HookCmd):
         f = open(script, 'w')
         f.write(content)
         f.close()
+        logger.info("Unhooked %s." % (script,))
 
     _cmd = _unhook
 
@@ -208,7 +218,7 @@ class Init(Cmd):
     def __call__(self, path=None, pargs=None):
         cfg_file = os.path.abspath(DEFAULT_CFG_FILE)
         reinit = os.path.isfile(cfg_file)
-        self.parent._save_config(cfg_file)
+        self.parent.save_config(cfg_file)
         if reinit:
             logger.info(u"Reinitialized mrsd root at %s." % \
                     (os.path.abspath(os.curdir)))
@@ -228,8 +238,8 @@ class CmdSet(object):
             return None
 
     def __init__(self):
-        self._load_config()
-        logger.debug(u"Rooted at %s." % (self.root,))
+        self.cfg = dict()
+        self.cfg_file = None
         self.cmds = odict([
                 ('init', Init('init', self)),
                 ('stock', Stock('stock', self)),
@@ -258,28 +268,28 @@ class CmdSet(object):
     def iteritems(self):
         return self.cmds.iteritems()
 
-    def _load_config(self, cfg_file=DEFAULT_CFG_FILE):
+    def load_config(self, cfg_file=DEFAULT_CFG_FILE):
         """Load config from curdir or parents
         """
         cfg_file = os.path.abspath(cfg_file)
         try:
+            logger.debug("Trying to load config from %s." % (cfg_file,))
             f = open(cfg_file)
         except IOError:
             # check in parent dir
-            parent_cfg_file = os.path.dirname(cfg_file)
-            if parent_cfg_file == cfg_file:
-                logger.debug("Running without config file")
-                # reached the root without config, running without config file
-                self.cfg = dict()
-                self.cfg_file = None
-                return
-            self._load_config(parent_cfg_file)
+            head, tail = os.path.split(cfg_file)
+            parent = os.path.dirname(head)
+            if head == parent:
+                raise RuntimeError("Found no configuration to load.")
+            cfg_file = os.path.join(parent, tail)
+            self.load_config(cfg_file)
         else:
+            logger.debug("Loaded config from %s." % (cfg_file,))
             self.cfg = json.load(f)
             self.cfg_file = cfg_file
             f.close()
 
-    def _save_config(self, cfg_file=None):
+    def save_config(self, cfg_file=None):
         cfg_file = cfg_file or self.cfg_file
         cfg_file = os.path.abspath(cfg_file)
         f = open(cfg_file, 'w')
