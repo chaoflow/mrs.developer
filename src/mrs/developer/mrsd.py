@@ -21,25 +21,28 @@ DEFAULT_CFG_FILE = '.mrsd'
 
 class Stock(Cmd):
     """Return dictionary of stock eggs.
+
+    Format: stock = { namespace = { egg_name = egg_source } }.
+    Namespace for now is the relative paths to the script the egg reference was
+    found in.
     """
-    def __call__(self, egg_name=None, pargs=None):
-        """If no args, return dict of all eggs in stock
+    def __call__(self, pargs=None):
+        """Dump all known eggs
         """
-        paths = set()
-        for script in [x for x in os.listdir('./bin') if not x[0] == '.']:
-            f = open('./bin/' + script)
-            paths.update(self._paths(f.read()))
-            f.close()
         stock = dict()
-        for path in paths:
-            if not path.endswith('.egg'):
-                continue
-            name = path.split(os.path.sep)[-1].split('-')[0]
-            stock[name] = path
-        if egg_name:
-            return stock[egg_name]
-        else:
-            return stock
+        paths = set()
+        for script in [x for x in os.listdir('bin') if not x[0] == '.']:
+            scriptpath = os.path.join('bin', script)
+            f = open(scriptpath)
+            paths = self._paths(f.read())
+            f.close()
+            eggspace = stock[scriptpath] = dict()
+            for path in paths:
+                if not path.endswith('.egg'):
+                    continue
+                name = path.split(os.path.sep)[-1].split('-')[0]
+                eggspace[name] = path
+        return stock
 
     def _paths(self, script):
         start_str = 'sys.path[0:0] = ['
