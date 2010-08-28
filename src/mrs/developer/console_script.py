@@ -31,7 +31,7 @@ class ConsoleScript(CmdSet):
         pargs = parser.parse_args()
         output = pargs.cmd(pargs=pargs)
         if output:
-            print json.dumps(output, indent=4)
+            print json.dumps(output, indent=4, sort_keys=True)
 
 
 mrsd = ConsoleScript()
