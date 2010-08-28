@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 import os
+import shutil
+from subprocess import check_call
+from subprocess import PIPE
+from subprocess import Popen
 try:
     import json
 except ImportError:
@@ -64,20 +68,34 @@ class Customize(Cmd):
         if not os.path.isdir(cfg['custom_eggs_dir']):
             os.mkdir(cfg['custom_eggs_dir'])
 
-    def __call__(self, egg_name):
-        stock_path = self.parent.cmds['stock'](egg_name)
-        custom_path = os.path.join(self.cfg['custom_eggs_dir'], egg_name)
-        # copy the stock egg to customized eggs
-        shutil.copytree(stock_path, custom_path, symlinks=True)
-        # initialize as a git repo and create initial commit
-        check_call(['git', 'init'],
-                cwd=custom_path, stdout=PIPE, stderr=PIPE)
-        check_call(['git', 'add', '.'],
-                cwd=custom_path, stdout=PIPE, stderr=PIPE)
-        check_call(['git', 'commit', '-m', 'initial from: %s' % (stock_path,)],
-                cwd=custom_path, stdout=PIPE, stderr=PIPE)
-        check_call(['git', 'tag', 'initial'],
-                cwd=custom_path, stdout=PIPE, stderr=PIPE)
+    def __call__(self, egg_names=None, pargs=None):
+        if pargs is not None:
+            egg_names = pargs.egg_name
+        eggspaces = self.parent.stock()
+        if not isinstance(egg_names, list):
+            egg_names = [egg_names]
+        for egg_name in egg_names:
+            for name, eggspace in eggspaces.iteritems():
+                try:
+                    stock_path = eggspace[egg_name]
+                except KeyError:
+                    continue
+                else:
+                    break
+            else:
+                raise ValueError(u"Egg %s not in stock" % (egg_name,))
+            custom_path = os.path.join(self.cfg['custom_eggs_dir'], egg_name)
+            # copy the stock egg to customized eggs
+            shutil.copytree(stock_path, custom_path, symlinks=True)
+            # initialize as a git repo and create initial commit
+            check_call(['git', 'init'],
+                    cwd=custom_path, stdout=PIPE, stderr=PIPE)
+            check_call(['git', 'add', '.'],
+                    cwd=custom_path, stdout=PIPE, stderr=PIPE)
+            check_call(['git', 'commit', '-m', 'initial from: %s' % (stock_path,)],
+                    cwd=custom_path, stdout=PIPE, stderr=PIPE)
+            check_call(['git', 'tag', 'initial'],
+                    cwd=custom_path, stdout=PIPE, stderr=PIPE)
 
     def init_argparser(self, parser):
         """Add our arguments to a parser
@@ -93,7 +111,7 @@ class Customize(Cmd):
 class Paths(Cmd):
     """Return the paths to be injected into a script's sys.path.
     """
-    def __call__(self, script=None):
+    def __call__(self, script=None, pargs=None):
         """script is the (relative) path to the script
         """
         # For now we return one list for all
@@ -106,7 +124,7 @@ class HookCmd(Cmd):
     start_indicator = '\n### mrs.developer'
     stop_indicator = '### mrs.developer: end.\n'
 
-    def __call__(self):
+    def __call__(self, pargs=None):
         """If no arguments are specified, we hook into all known scripts
 
         except buildout and mrsd
@@ -210,7 +228,7 @@ class CmdSet(object):
                 )
 
     def __getattr__(self, name):
-        cmds = object.__getattr(self, 'cmds')
+        cmds = object.__getattribute__(self, 'cmds')
         if name in cmds:
             return cmds[name]
 
