@@ -105,12 +105,16 @@ class Customize(Cmd):
 class Paths(Cmd):
     """Return the paths to be injected into a script's sys.path.
     """
-    def __call__(self, script=None, pargs=None):
+    def __call__(self, pargs=None):
         """script is the (relative) path to the script
         """
+        custom_eggs_dir = os.path.join(
+                self.root or os.curdir,
+                self.cfg['custom_eggs_dir']
+                )
         # For now we return one list for all
-        paths = [os.path.abspath(os.path.join(self.cfg['custom_eggs_dir'], x)) \
-                for x in os.listdir(self.cfg['custom_eggs_dir'])]
+        paths = [os.path.join(custom_eggs_dir, x) \
+                for x in os.listdir(custom_eggs_dir)]
         return paths
 
 
@@ -126,14 +130,17 @@ class HookCmd(Cmd):
 
         except buildout and mrsd
         """
-        scriptdir = os.path.join(self.root, self.cfg['scripts_dir'])
+        scriptdir = os.path.join(
+                self.root or os.curdir,
+                self.cfg['scripts_dir']
+                )
         for name in os.listdir(scriptdir):
             script = os.path.join(scriptdir, name)
             if name in ('buildout', 'mrsd'):
-                logger.debug("Not hooking into %s." % (script,))
+                logger.debug("Ignoring %s." % (script,))
                 continue
             if name[0] == '.':
-                logger.debug("Not hooking into %s." % (script,))
+                logger.debug("Ignoring %s." % (script,))
                 continue
             # Will be either hookin or unhook
             self._cmd(script)
@@ -245,8 +252,8 @@ class CmdSet(object):
                 ('stock', Stock('stock', self)),
                 ('customize', Customize('customize', self)),
                 ('paths', Paths('paths', self)),
-                ('unhook', Unhook('unhook', self)),
                 ('hookin', Hookin('hookin', self)),
+                ('unhook', Unhook('unhook', self)),
                 ('develop', Develop('develop', self)),
                 ('checkout', Checkout('checkout', self)),
                 ])

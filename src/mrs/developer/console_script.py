@@ -46,7 +46,10 @@ class ConsoleScript(CmdSet):
         except RuntimeError:
             # we run without a config file
             pass
-        logger.debug(u"Rooted at %s." % (self.root,))
+        if self.root:
+            logger.debug(u"Rooted at %s." % (self.root,))
+        else:
+            logger.debug(u"Running unrooted.")
         output = pargs.cmd(pargs=pargs)
         if output:
             print json.dumps(output, indent=4, sort_keys=True)
