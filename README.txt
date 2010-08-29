@@ -18,15 +18,9 @@ Overview
 
 mrs.developer is a:
   - buildout extension.
-  - a 
+  - a
 
 
-
-mrsd custom [eggspace | patched]
-mrsd custom --activate [eggspace]
-mrsd custom --deactivate [eggspace]
-mrsd custom --generate-patches [eggspace]
-mrsd custom --apply-patches [eggspace]
 
 mrsd sdist clone <eggspace>
 
@@ -49,6 +43,18 @@ Namespaces
     local == local: == local:eg* == --all
 
 
+    bdist:
+    sdist:
+
+    % mrsd clone local:bdist:egg_name
+    % mrsd clone bdist:local:egg_name
+    
+    % mrsd clone default
+
+    % mrsd clone sdist:egg_name
+
+    % mrsd clone egg_name
+
 
 
     % mrsd bdist clone <eggspace>
@@ -60,35 +66,34 @@ Namespaces
 Customizing bdist eggs
 ----------------------
 
-List all eggs available for customizatin
+List all bdist eggs available for customization:
 .. code-block:: console
 
     % mrsd custom
     ...
-    % mrsd custom --list
+    % mrsd custom list <eggspace>
     ...
 
-Customize eggs, this will also activate them, except if told otherwise
+Clone bdist eggs:
+::
+    % mrsd custom clone <eggspace>
+    ...
+    % mrsd clone <eggspace>
+
+Activate bdist eggs:
+::
+    % mrsd custom activate <eggspace>
+    ...
+
+Deactivate bdist eggs:
+::
+    % mrsd custom deactivate <eggspace>
+    ...
+
+Clone and activate bdist eggs:
 ::
     % mrsd custom <eggspace>
     ...
-    % mrsd custom --clone <eggspace> (--clone is default)
-    ...
-    % mrsd custom --clone --activate <eggspace> (default: True)
-    ...
-    % mrsd custom --clone --deactivate <eggspace> (default: False)
-    ...
-
-Activate eggs
-::
-    % mrsd custom --activate <eggspace>
-    ...
-
-Deactivate eggs
-::
-    % mrsd custom --deactivate <eggspace>
-    ...
-
 
 Patch management for bdist eggs
 -------------------------------
@@ -101,19 +106,18 @@ List all existing patches
 ::
     % mrsd patch
     ...
-    % mrsd patch --list
-    ...
+    % mrsd patch list <eggspace>
 
 Generate patches
 ::
-    % mrsd patch --generate <eggspace>
+    % mrsd patch generate <eggspace>
     ...
 
 Apply patches
 ::
     % mrsd patch <eggspace>
     ...
-    % mrsd patch --apply <eggspace>
+    % mrsd patch apply <eggspace>
     ...
 
 
@@ -146,6 +150,37 @@ Clone and activate source
     % mrsd clone --sdist <eggspace>
     ...
 
+
+Activation in general
+---------------------
+
+Show activation status for bdists and sdists:
+::
+    % mrsd status
+    ...
+    % mrsd status <eggspace> [bdist: sdist:]
+    ...
+
+Activate/deactivate mrsd (won't change activation of single eggs):
+::
+    % mrsd activate
+    ...
+
+behind the scenes: mrsd hookin, mrsd develop activate?
+
+    % mrsd deactivate
+    ...
+
+behind the scenes: mrsd unhook, mrsd develop deactivate?
+
+
+Activativation of specific eggs
+-------------------------------
+
+    % mrsd activate <eggspace>
+    ...
+
+    % mrsd deactivate <eggspace>
 
 
 Custom copy of egg
