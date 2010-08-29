@@ -10,3 +10,4 @@ develop-eggs/
 include/
 lib/
 src/mrs.developer.egg-info/
+/parts/
