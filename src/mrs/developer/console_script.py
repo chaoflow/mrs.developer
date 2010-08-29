@@ -40,7 +40,7 @@ class ConsoleScript(CmdSet):
             cmd_parser.set_defaults(cmd=cmd)
             if isinstance(cmd, CmdWrapper):
                 cmd_parser.only_known_args = True
-        expargs = [sys.argv[0]]
+        expargs = []
         try:
             expargs.append(self.aliases.get(sys.argv[1], sys.argv[1]))
         except IndexError:
