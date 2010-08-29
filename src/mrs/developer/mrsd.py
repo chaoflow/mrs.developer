@@ -30,10 +30,14 @@ class Stock(Cmd):
     def __call__(self, pargs=None):
         """Dump all known eggs
         """
+        scriptdir = os.path.join(
+                self.root or os.curdir,
+                self.cfg['scripts_dir']
+                )
         stock = dict()
         paths = set()
-        for script in [x for x in os.listdir('bin') if not x[0] == '.']:
-            scriptpath = os.path.join('bin', script)
+        for script in [x for x in os.listdir(scriptdir) if not x[0] == '.']:
+            scriptpath = os.path.join(scriptdir, script)
             f = open(scriptpath)
             paths = self._paths(f.read())
             f.close()
@@ -56,18 +60,20 @@ class Customize(Cmd):
     """Create a copy of a stock egg inside the custom_eggs_dir.
 
     Will be set up as git repo.
+
+    Understood eggspaces are: name of an egg, patched (eggs we have patches for).
     """
     def _initialize(self):
         # cfg defaults
-        cfg = self.cfg
-        cfg.setdefault('custom_eggs_dir', 'eggs-customized')
-        # create the parent directory
-        if not os.path.isdir(cfg['custom_eggs_dir']):
-            os.mkdir(cfg['custom_eggs_dir'])
+        self.cfg.setdefault('custom_eggs_dir', 'eggs-mrsd')
 
     def __call__(self, egg_names=None, pargs=None):
         if pargs is not None:
             egg_names = pargs.egg_name
+        custom_eggs_dir = os.path.join(
+                self.root or os.path.curdir,
+                self.cfg['custom_eggs_dir'],
+                )
         eggspaces = self.parent.stock()
         if not isinstance(egg_names, list):
             egg_names = [egg_names]
@@ -81,7 +87,10 @@ class Customize(Cmd):
                     break
             else:
                 raise ValueError(u"Egg %s not in stock" % (egg_name,))
-            custom_path = os.path.join(self.cfg['custom_eggs_dir'], egg_name)
+            custom_path = os.path.join(custom_eggs_dir, egg_name)
+            # create the parent directory
+            if not os.path.isdir(custom_eggs_dir):
+                os.mkdir(custom_eggs_dir)
             # copy the stock egg to customized eggs
             shutil.copytree(stock_path, custom_path, symlinks=True)
             # initialize as a git repo and create initial commit
@@ -95,22 +104,25 @@ class Customize(Cmd):
         """Add our arguments to a parser
         """
         parser.add_argument(
-                'egg_name',
+                'eggspace',
                 nargs='+',
-                help='Name of the egg to copy to %s for customization.' % \
-                            (os.path.join('.', self.cfg['custom_eggs_dir'],)),
+                help='Eggspace to customize.',
                 )
 
 
 class Paths(Cmd):
     """Return the paths to be injected into a script's sys.path.
     """
-    def __call__(self, script=None, pargs=None):
+    def __call__(self, pargs=None):
         """script is the (relative) path to the script
         """
+        custom_eggs_dir = os.path.join(
+                self.root or os.curdir,
+                self.cfg['custom_eggs_dir']
+                )
         # For now we return one list for all
-        paths = [os.path.abspath(os.path.join(self.cfg['custom_eggs_dir'], x)) \
-                for x in os.listdir(self.cfg['custom_eggs_dir'])]
+        paths = [os.path.join(custom_eggs_dir, x) \
+                for x in os.listdir(custom_eggs_dir)]
         return paths
 
 
@@ -118,18 +130,28 @@ class HookCmd(Cmd):
     start_indicator = '\n### mrs.developer'
     stop_indicator = '### mrs.developer: end.\n'
 
+    def _initialize(self):
+        self.cfg.setdefault('scripts_dir', 'bin')
+
     def __call__(self, pargs=None):
         """If no arguments are specified, we hook into all known scripts
 
         except buildout and mrsd
         """
-        for name in os.listdir('./bin'):
+        scriptdir = os.path.join(
+                self.root or os.curdir,
+                self.cfg['scripts_dir']
+                )
+        for name in os.listdir(scriptdir):
+            script = os.path.join(scriptdir, name)
             if name in ('buildout', 'mrsd'):
+                logger.debug("Ignoring %s." % (script,))
                 continue
             if name[0] == '.':
+                logger.debug("Ignoring %s." % (script,))
                 continue
             # Will be either hookin or unhook
-            self._cmd('./bin/' + name)
+            self._cmd(script)
 
 
 class Hookin(HookCmd):
@@ -165,6 +187,7 @@ if paths:
             content = f.read()
             f.close()
         if self.start_str not in content:
+            logger.debug("Not hooking into %s." % (script,))
             return
         idx = content.find(self.start_str) + len(self.start_str)
         idx = content.find(']', idx)+2
@@ -175,6 +198,7 @@ if paths:
         f = open(script, 'w')
         f.write(hooked)
         f.close()
+        logger.info("Hooked into %s." % (script,))
 
     _cmd = _hookin
 
@@ -196,6 +220,7 @@ class Unhook(HookCmd):
         f = open(script, 'w')
         f.write(content)
         f.close()
+        logger.info("Unhooked %s." % (script,))
 
     _cmd = _unhook
 
@@ -208,7 +233,7 @@ class Init(Cmd):
     def __call__(self, path=None, pargs=None):
         cfg_file = os.path.abspath(DEFAULT_CFG_FILE)
         reinit = os.path.isfile(cfg_file)
-        self.parent._save_config(cfg_file)
+        self.parent.save_config(cfg_file)
         if reinit:
             logger.info(u"Reinitialized mrsd root at %s." % \
                     (os.path.abspath(os.curdir)))
@@ -220,21 +245,32 @@ class Init(Cmd):
 class CmdSet(object):
     """The mrsd command set.
     """
+    @property
+    def root(self):
+        try:
+            return os.path.dirname(self.cfg_file)
+        except AttributeError:
+            return None
+
     def __init__(self):
-        self._load_config()
+        self.cfg = dict()
+        self.cfg_file = None
         self.cmds = odict([
                 ('init', Init('init', self)),
                 ('stock', Stock('stock', self)),
                 ('customize', Customize('customize', self)),
                 ('paths', Paths('paths', self)),
-                ('unhook', Unhook('unhook', self)),
                 ('hookin', Hookin('hookin', self)),
+                ('unhook', Unhook('unhook', self)),
                 ('develop', Develop('develop', self)),
                 ('checkout', Checkout('checkout', self)),
                 ])
 
     def __getattr__(self, name):
-        cmds = object.__getattribute__(self, 'cmds')
+        try:
+            cmds = object.__getattribute__(self, 'cmds')
+        except AttributeError:
+            return object.__getattribute__(self, name)
         if name in cmds:
             return cmds[name]
 
@@ -247,28 +283,28 @@ class CmdSet(object):
     def iteritems(self):
         return self.cmds.iteritems()
 
-    def _load_config(self, cfg_file=DEFAULT_CFG_FILE):
+    def load_config(self, cfg_file=DEFAULT_CFG_FILE):
         """Load config from curdir or parents
         """
         cfg_file = os.path.abspath(cfg_file)
         try:
+            logger.debug("Trying to load config from %s." % (cfg_file,))
             f = open(cfg_file)
         except IOError:
             # check in parent dir
-            parent_cfg_file = os.path.dirname(cfg_file)
-            if parent_cfg_file == cfg_file:
-                logger.debug("Running without config file")
-                # reached the root without config, running without config file
-                self.cfg = dict()
-                self.cfg_file = None
-                return
-            self._load_config(parent_cfg_file)
+            head, tail = os.path.split(cfg_file)
+            parent = os.path.dirname(head)
+            if head == parent:
+                raise RuntimeError("Found no configuration to load.")
+            cfg_file = os.path.join(parent, tail)
+            self.load_config(cfg_file)
         else:
+            logger.debug("Loaded config from %s." % (cfg_file,))
             self.cfg = json.load(f)
             self.cfg_file = cfg_file
             f.close()
 
-    def _save_config(self, cfg_file=None):
+    def save_config(self, cfg_file=None):
         cfg_file = cfg_file or self.cfg_file
         cfg_file = os.path.abspath(cfg_file)
         f = open(cfg_file, 'w')

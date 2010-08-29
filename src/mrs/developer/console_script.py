@@ -6,7 +6,7 @@ try:
 except ImportError:
     import simplejson as json
 
-from mrs.developer.base import logging
+from mrs.developer.base import logging, logger
 from mrs.developer.mrsd import CmdSet
 
 
@@ -41,6 +41,15 @@ class ConsoleScript(CmdSet):
             logging.basicConfig(level=logging.DEBUG)
         else:
             logging.basicConfig(level=logging.INFO)
+        try:
+            self.load_config()
+        except RuntimeError:
+            # we run without a config file
+            pass
+        if self.root:
+            logger.debug(u"Rooted at %s." % (self.root,))
+        else:
+            logger.debug(u"Running unrooted.")
         output = pargs.cmd(pargs=pargs)
         if output:
             print json.dumps(output, indent=4, sort_keys=True)

@@ -8,4 +8,5 @@ Todo
   (e.g.: git l; git s)
 - plone.reload support
 
-
+- figure out what commands need a config and which can run unrooted
+- loaded config has only absolute paths, paths are relativated on save

@@ -20,6 +20,10 @@ class Cmd(object):
     def cfg(self):
         return self.parent.cfg
 
+    @property
+    def root(self):
+        return self.parent.root
+
     def __init__(self, name, parent):
         self.__name__ = name
         self.parent = parent
