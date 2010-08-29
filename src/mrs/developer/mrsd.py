@@ -121,10 +121,14 @@ class Paths(Cmd):
                 self.root or os.curdir,
                 self.cfg['custom_eggs_dir']
                 )
-        # For now we return one list for all
-        paths = [os.path.join(custom_eggs_dir, x) \
-                for x in os.listdir(custom_eggs_dir)]
-        return paths
+        # dir may not exist
+        if os.path.exists(custom_eggs_dir):
+            # For now we return one list for all
+            paths = [os.path.join(custom_eggs_dir, x)
+                     for x in os.listdir(custom_eggs_dir)]
+            return paths
+        else:
+            return []
 
 
 class HookCmd(Cmd):
