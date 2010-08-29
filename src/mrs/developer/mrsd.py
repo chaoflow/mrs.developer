@@ -259,6 +259,7 @@ class CmdSet(object):
 
     entry_point_keys = {
         'commands': 'mrs.developer.commands',
+        'aliases': 'mrs.developer.aliases'
     }
 
     @property
@@ -275,6 +276,8 @@ class CmdSet(object):
         self.aliases = {}
         for ep in iter_entry_points(self.entry_point_keys['commands']):
             self.cmds[ep.name] = ep.load()(ep.name, self)
+        for ep in iter_entry_points(self.entry_point_keys['aliases']):
+            self.aliases[ep.name] = ep.load()()
 
     def __getattr__(self, name):
         try:
