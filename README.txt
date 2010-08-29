@@ -22,6 +22,130 @@ mrs.developer is a:
 
 
 
+mrsd custom [eggspace | patched]
+mrsd custom --activate [eggspace]
+mrsd custom --deactivate [eggspace]
+mrsd custom --generate-patches [eggspace]
+mrsd custom --apply-patches [eggspace]
+
+mrsd sdist clone <eggspace>
+
+
+mrsd develop eggspace
+mrsd develop --activate eggspace
+mrsd develop --deactivate eggspace
+mrsd clone --bdist eggspace
+mrsd clone --sdist eggspace
+mrsd activate --bdist eggspace
+mrsd activate --sdist eggspace
+mrsd deactivate --bdist eggspace
+mrsd deactivate --sdist eggspace
+
+Namespaces
+----------
+
+    local:eggname == eggname
+    local:path/to/egg == path/to/egg
+    local == local: == local:eg* == --all
+
+
+
+
+    % mrsd bdist clone <eggspace>
+    % mrsd clone --bdist <eggspace>
+
+    % mrsd custom
+
+
+Customizing bdist eggs
+----------------------
+
+List all eggs available for customizatin
+::
+    % mrsd custom
+    ...
+    % mrsd custom --list
+    ...
+
+Customize eggs, this will also activate them, except if told otherwise
+::
+    % mrsd custom <eggspace>
+    ...
+    % mrsd custom --clone <eggspace> (--clone is default)
+    ...
+    % mrsd custom --clone --activate <eggspace> (default: True)
+    ...
+    % mrsd custom --clone --deactivate <eggspace> (default: False)
+    ...
+
+Activate eggs
+::
+    % mrsd custom --activate <eggspace>
+    ...
+
+Deactivate eggs
+::
+    % mrsd custom --deactivate <eggspace>
+    ...
+
+
+Patch management for bdist eggs
+-------------------------------
+
+Valid eggspace:
+    - one or more egg names
+    - (relative) path 
+
+List all existing patches
+::
+    % mrsd patch
+    ...
+    % mrsd patch --list
+    ...
+
+Generate patches
+::
+    % mrsd patch --generate <eggspace>
+    ...
+
+Apply patches
+::
+    % mrsd patch <eggspace>
+    ...
+    % mrsd patch --apply <eggspace>
+    ...
+
+
+Source distribution / develop egg management
+--------------------------------------------
+
+List packages available for development
+::
+    % msrd develop
+    ...
+    % msrd develop --list
+    ...
+
+Develop eggs, will clone sources and activate them
+::
+    % msrd develop <eggspace>
+    ...
+    % msrd develop --activate <eggspace>
+    ...
+    % msrd develop --deactivate <eggspace>
+    ...
+
+Clone sources
+::
+    % mrsd clone --sdist <eggspace>
+    ...
+
+Clone and activate source
+::
+    % mrsd clone --sdist <eggspace>
+    ...
+
+
 
 Custom copy of egg
 ==================
@@ -69,13 +193,9 @@ You can switch back and forth between your customized egg and the stock egg.
 
     % ./bin/mrsd toggle <eggname>
 
-    % ./bin/mrsd toggle --all
-
     % ./bin/mrsd stock <eggname>
 
     % ./bin/mrsd stock <eggname>
-
-    % ./bin/mrsd stock --all
 
     % ./bin/mrsd customize <eggname>
     WARNING
@@ -88,8 +208,6 @@ Discarding customized eggs
 XXX: Do we want to support the following 
 
     % ./bin/mrsd discard <eggname>
-
-    % ./bin/mrsd discard --all
 
 
 Generating patches
