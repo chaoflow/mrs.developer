@@ -61,7 +61,8 @@ Customizing bdist eggs
 ----------------------
 
 List all eggs available for customizatin
-::
+.. code-block:: console
+
     % mrsd custom
     ...
     % mrsd custom --list

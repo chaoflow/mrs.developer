@@ -1,3 +1,10 @@
+import unittest
+import manuel.codeblock
+import manuel.doctest
+import manuel.testing
+
+
+### This should probably be moved to manuel
 import re
 import manuel
 import textwrap
@@ -33,11 +40,27 @@ def execute_code_block(region, document, globs):
     if not isinstance(region.parsed, BashBlock):
         return
 
+    import ipdb;ipdb.set_trace()
     result = 'lalalala'
-    import pdb; pdb.set_trace()
     region.evaluated = result
 
 
 class Manuel(manuel.Manuel):
     def __init__(self):
         manuel.Manuel.__init__(self, [find_code_blocks], [execute_code_block])
+
+##########################
+
+
+def test_suite():
+    m = manuel.doctest.Manuel()
+    m += manuel.codeblock.Manuel()
+    m += Manuel()
+    return manuel.testing.TestSuite(m,
+            #'../README.txt'
+            '../tests.txt',
+            )
+
+if __name__ == '__main__':
+    unittest.TextTestRunner().run(test_suite())
+
