@@ -1114,7 +1114,10 @@ class _SubParsersAction(Action):
             raise ArgumentError(self, msg)
 
         # parse all the remaining options into the namespace
-        parser.parse_args(arg_strings, namespace)
+        if getattr(parser, 'only_known_args', False):
+            parser.parse_known_args(arg_strings, namespace)
+        else:
+            parser.parse_args(arg_strings, namespace)
 
 
 # ==============
