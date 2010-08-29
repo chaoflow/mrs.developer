@@ -26,7 +26,8 @@ setup(name='mrs.developer',
       zip_safe=False,
       install_requires=[
           'setuptools',
-          'argparse',
+          # we currently ship our own argparse
+          #'argparse',
           'odict',
       ],
       extras_require={
@@ -40,10 +41,9 @@ setup(name='mrs.developer',
           'console_scripts': [
               'mrsd = mrs.developer.console_script:mrsd',
               ],
-
+          # inject our development eggs
           'zc.buildout.extension': ['ext = mrs.developer.extensions:load'],
-
-          # unload extension: dump all working_sets info, hookin
+          # run mrsd hookin to hook into generated scripts
           'zc.buildout.unloadextension': ['ext = mrs.developer.extensions:unload'],
           },
       )
