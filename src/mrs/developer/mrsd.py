@@ -110,6 +110,73 @@ class Customize(Cmd):
                 help='Eggspace to customize.',
                 )
 
+class Patch(Cmd):
+    """Patch management, list, generate and apply patches on bdist eggs.
+    """
+    def _initialize(self):
+        # read a list of available patches
+        patches_dir = self.cfg['patches_dir'].setdefault('eggs-patches')
+        patches_dir = os.path.join(
+                self.root or os.curdir,
+                patches_dir,
+                )
+        for pkg in os.listdir(patches_dir):
+            self.patches[pkg] = []
+            pkg_patch_dir = os.path.join(patches_dir, pkg)
+            for patch in os.listdir(pkg_patch_dir):
+                patch = os.path.abspath(patch)
+                self.patches[pkg].append(patch)
+
+    def init_argparser(self, parser):
+        """Add our arguments to a parser
+        """
+        actions = parser.add_mutually_exclusive_group()
+        action.add_argument(
+                '--list',
+                dest='action',
+                action='store_const',
+                const=self.list
+                help=self.list.__doc__
+                default=True,
+                )
+        action.add_argument(
+                '--generate',
+                dest='action',
+                action='store_const',
+                const=self.generate
+                help=self.list.__doc__
+                default=True,
+                )
+        action.add_argument(
+                'eggspace',
+                nargs='*',
+                help='Eggspace to customize.',
+                )
+
+    def list(self, namespace):
+        """List patches for namespace.
+        """
+        return self.patches
+        
+    def generate(self, namespace):
+        """Generate patches from customized bdist eggs.
+        """
+
+    def apply(self, namespace):
+        """Apply patches for namespace.
+        """
+
+    def __call__(self, pargs=None):
+#        for egg in eggspace if egg in self.patches:
+#            self._customize(egg)
+#            self._patch(egg, self.patches[egg.name])
+
+    def _patch(self, egg, patches):
+        """Apply patches to egg
+        """
+        for patch in patches:
+            patch(egg)
+
 
 class Paths(Cmd):
     """Return the paths to be injected into a script's sys.path.
