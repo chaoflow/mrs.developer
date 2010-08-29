@@ -7,6 +7,7 @@ except ImportError:
     import simplejson as json
 
 from mrs.developer.base import logging, logger
+from mrs.developer.base import CmdWrapper
 from mrs.developer.mrsd import CmdSet
 
 
@@ -36,6 +37,8 @@ class ConsoleScript(CmdSet):
                     )
             cmd.init_argparser(cmd_parser)
             cmd_parser.set_defaults(cmd=cmd)
+            if isinstance(cmd, CmdWrapper):
+                cmd_parser.only_known_args = True
         pargs = parser.parse_args()
         if pargs.debug:
             logging.basicConfig(level=logging.DEBUG)

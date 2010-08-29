@@ -12,6 +12,7 @@ except ImportError:
 from odict import odict
 
 from mrs.developer.base import Cmd
+from mrs.developer.base import CmdWrapper
 from mrs.developer.base import check_call
 from mrs.developer.base import logger
 from mrs.developer.develop import Checkout
@@ -242,6 +243,13 @@ class Init(Cmd):
                     (os.path.abspath(os.curdir)))
 
 
+class Test(CmdWrapper):
+    """Run the tests, from anywhere in your project, without the need to know
+    where your testrunner lives.
+    """
+    cmdline = ["./bin/test"]
+
+
 class CmdSet(object):
     """The mrsd command set.
     """
@@ -264,6 +272,7 @@ class CmdSet(object):
                 ('unhook', Unhook('unhook', self)),
                 ('develop', Develop('develop', self)),
                 ('checkout', Checkout('checkout', self)),
+                ('test', Test('test', self)),
                 ])
 
     def __getattr__(self, name):
