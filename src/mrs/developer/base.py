@@ -24,26 +24,38 @@ def call(*args, **kws):
 class Cmd(object):
     """An abstract command
 
-    subclasses need to implement __call__ and may implement _initialize
+    I might be beneficial for subcommands to implement __call__, init_argparser
+    and _initialize.
     """
     @property
     def cfg(self):
-        return self.parent.cfg
+        return self.__parent__.cfg
 
     @property
     def root(self):
-        return self.parent.root
+        return self.__parent__.root
+
+    @property
+    def cmds(self):
+        return self.__parent__
 
     def __init__(self, name, parent):
         self.__name__ = name
-        self.parent = parent
-        try:
-            self._initialize()
-        except AttributeError:
-            pass
+        self.__parent__ = parent
+        self._initialize()
+
+    def _initialize(self):
+        """Initialization, for example self.cfg.setdefault(.., ..)
+        """
+
+    def __call__(self, pargs=None):
+        """Execute the command, will receive parser args from argparse, when
+        run from cmdline.
+        """
 
     def init_argparser(self, parser):
-        pass
+        """Add our arguments to a parser.
+        """
 
 
 class CmdWrapper(Cmd):

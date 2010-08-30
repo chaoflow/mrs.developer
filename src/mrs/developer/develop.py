@@ -175,7 +175,7 @@ class Develop(Cmd):
         else:
             for name in eggs:
                 self.cfg['develop'].pop(name, None)
-        self.parent.save_config()
+        self.cmds.save_config()
 
     def init_argparser(self, parser):
         """Add our arguments to a parser
