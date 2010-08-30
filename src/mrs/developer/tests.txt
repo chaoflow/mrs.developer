@@ -1,6 +1,14 @@
 
 .. code-block:: console
 
-    $ pwd
-    lalalala
+    $ echo hello
+    hello
+
+    # echo \
+    > hello2
+    hello2
+
+    # echo \
+    > hello3
+    hello3
 
