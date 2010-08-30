@@ -1,0 +1,197 @@
+
+channel read-only / read-write
+
+    % mrsd channel
+
+    % mrsd channel add svnploneorg https://svn.plone.org
+
+    % mrsd channel add plone sdist://svnploneorg/svn/plone
+
+    % mrsd channel add github git://github.com
+
+    % mrsd channel add claytron github/claytron
+
+    % mrsd channel activate claytron 
+
+    % mrsd channel activate claytron sdist
+
+    % mrsd channel deactivate claytron
+
+    % mrsd channel add --type=pypi pypi https://pypi.python.org/
+    % mrsd channel add --type=pypi plone_pypi https://plone.org/products
+
+    % mrsd channel activate pypi
+    automatic detection of available stuff
+    sdist, bdist
+
+    % mrsd channel deactivate pypi bdist
+    sdist
+
+    % mrsd channel deactivate pypi
+    channel deactivated
+
+    % mrsd channel activate pypi
+    sdist
+
+    % mrsd channel rm pypi
+
+    % mrsd channel add --type=pypi pypi https://pypi.python.org/
+
+    % mrsd channel activate pypi
+    sdist, bdist
+
+    % mrsd channel activate pypi bdist
+    sdist, bdist
+
+    % mrsd channel rename pypi
+
+    % mrsd channel set-url pypi
+
+    % mrsd channel show pypi
+
+    % mrsd channel update pypi
+
+    % mrsd channel update all
+
+
+
+
+Channels are the source for binary and source distributions, PyPI, the Plone
+collective and the buildout cache are examples.
+
+
+scheme://authority/path?query#fragment
+
+sdist://plonecollective/build/plone.recipe.compiler?branch=foo&path=buildout&revision=134255
+repo://plonecollective/build/plone.recipe.compiler?br
+
+    mrsd clone global/
+    mrsd clone plonecollective/build/...
+    mrsd clone cache|home|user/
+    mrsd clone local/plonecollective 
+    mrsd clone ./plonecollective 
+
+    The path points to a package
+
+
+``mrsd clone collective/buildout/plone.recipe.precompiler``
+  point to trunk or directly 
+  points to package
+
+``mrsd clone collective/buildout/plone.recipe.precompiler/<branch>``
+  a collection of distributions, a package
+  points to package
+
+``mrsd clone collective/buildout/plone.recipe.precompiler/<tag>``
+  a package with only one distribution, therefore a distribution
+
+``mrsd clone collective/buildout/plone.recipe.precompiler/<branch>/subdir?rev=134255``
+  version/revision -> distribution
+
+``mrsd clone sdist://collective/buildout/plone.recipe.precompiler/<branch>/subdir?rev=134255#metadata``
+
+``mrsd get patch://collective/buildout/plone.recipe.precompiler/<branch>/134255#committer``
+
+``mrsd clone repo://github/garbas/mrs.developer#<rev>``
+
+``mrsd cherry-pick repo://github/garbas/mrs.developer#<rev>``
+
+
+
+  subdir in repo
+
+  % mrsd remote add collective https://svn.plone.org/svn/plone
+
+  query
+  fragment -> used for a fragment of a distribution
+
+
+
+
+``mrsd clone pypi/plone.recipe.precompiler
+
+sdist://plonecollective/build/plone.recipe.compiler/foo?buildout/uhilhe#134255
+sdist://plonecollective/build/plone.recipe.compiler/foo
+py24egg://pypi/plone.recipe.precompiler#1.2
+projectdir/foo/bar
+cache://home/plone.recipe.precompiler-0.4-py2.6.egg
+
+
+
+In a channel each 
+package/project is uniquely identified by its name. A channel can have
+arbitrarly nested subchannels, providing namespaces for packages, directories
+on the filesystem as an example.
+
+    ``[<channel>:][<subchannel>/]<package>[/|-<revision>][-|/<flavour>]``
+
+Examples:
+
+    pypi:mrs.developer
+
+    pypi:mrs.developer-0.9-sdist
+    pypi:mrs.developer-0.9-source
+    pypi:mrs.developer-0.9-src
+
+    pypi:mrs.developer-0.9-py2.4 
+    pypi:mrs.developer-0.9-py2.6
+
+    pypi:mrs.developer:0.9:py2.6
+
+    gitcollective:mrs.developer (use the default branch)
+    gitcollective:mrs.developer/<revision> (man git-rev-parse)
+
+    collective:buildout/plone.recipe.precompiler (trunk or direct)
+    collective:buildout/plone.recipe.precompiler/<revision> (same logic as
+    git-rev-parse)
+    collective:buildout/plone.recipe.precompiler/trunk@revision
+
+    [local:]src/my.egg
+
+List known channels 
+::
+    % mrsd channel list
+    foo
+
+
+    cache24:mrs.developer   (will only look for py2.4 flavour)
+    cache26:mrs.developer
+    repocache:mrs.developer
+
+A branch is a channel
+
+path to a profile
+
+    gitrok: -> github.com/garbas/
+    gitrok:mrsd.profiles/tagfoo/plone4
+
+    rokprofiles:plone4
+
+    % mrsd clone pypi:mrs.developer-0.9
+
+    % mrsd clone gc:mrs.developer
+
+
+
+Known channels
+
+
+has a unique name and 
+
+Known channels
+PyPI
+cache
+buildout cache
+repo cache
+
+List all distributions in the default distro
+    % mrsd list
+
+    % mrsd list <distspace>
+
+
+TODO:
+
+    % mrsd channel add
+    % mrsd channel remove
+

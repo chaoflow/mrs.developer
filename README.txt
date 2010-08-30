@@ -5,13 +5,6 @@
 mrs.developer closes the gap between using stock eggs from pypi and the world
 of revision controlled source code handled by mr.developer.
 
-Conventions
-===========
-
-Relative paths are relative to the buildout directory, except noted otherwise.
-
-*Local* refers to something in the buildout directory.
-
 
 Overview
 ========
@@ -25,162 +18,15 @@ mrs.developer is a:
 mrsd sdist clone <eggspace>
 
 
-mrsd develop eggspace
-mrsd develop --activate eggspace
-mrsd develop --deactivate eggspace
-mrsd clone --bdist eggspace
-mrsd clone --sdist eggspace
-mrsd activate --bdist eggspace
-mrsd activate --sdist eggspace
-mrsd deactivate --bdist eggspace
-mrsd deactivate --sdist eggspace
+Terminology
+-----------
 
-Namespaces
-----------
+Relative paths are relative to the buildout directory, except noted otherwise.
 
-    local:eggname == eggname
-    local:path/to/egg == path/to/egg
-    local == local: == local:eg* == --all
+*Local* refers to something in the buildout directory.
 
-
-    bdist:
-    sdist:
-
-    % mrsd clone local:bdist:egg_name
-    % mrsd clone bdist:local:egg_name
-    
-    % mrsd clone default
-
-    % mrsd clone sdist:egg_name
-
-    % mrsd clone egg_name
-
-
-
-    % mrsd bdist clone <eggspace>
-    % mrsd clone --bdist <eggspace>
-
-    % mrsd custom
-
-
-Customizing bdist eggs
-----------------------
-
-List all bdist eggs available for customization:
-.. code-block:: console
-
-    % mrsd custom
-    ...
-    % mrsd custom list <eggspace>
-    ...
-
-Clone bdist eggs:
-::
-    % mrsd custom clone <eggspace>
-    ...
-    % mrsd clone <eggspace>
-
-Activate bdist eggs:
-::
-    % mrsd custom activate <eggspace>
-    ...
-
-Deactivate bdist eggs:
-::
-    % mrsd custom deactivate <eggspace>
-    ...
-
-Clone and activate bdist eggs:
-::
-    % mrsd custom <eggspace>
-    ...
-
-Patch management for bdist eggs
--------------------------------
-
-Valid eggspace:
-    - one or more egg names
-    - (relative) path 
-
-List all existing patches
-::
-    % mrsd patch
-    ...
-    % mrsd patch list <eggspace>
-
-Generate patches
-::
-    % mrsd patch generate <eggspace>
-    ...
-
-Apply patches
-::
-    % mrsd patch <eggspace>
-    ...
-    % mrsd patch apply <eggspace>
-    ...
-
-
-Source distribution / develop egg management
---------------------------------------------
-
-List packages available for development
-::
-    % msrd develop
-    ...
-    % msrd develop --list
-    ...
-
-Develop eggs, will clone sources and activate them
-::
-    % msrd develop <eggspace>
-    ...
-    % msrd develop --activate <eggspace>
-    ...
-    % msrd develop --deactivate <eggspace>
-    ...
-
-Clone sources
-::
-    % mrsd clone --sdist <eggspace>
-    ...
-
-Clone and activate source
-::
-    % mrsd clone --sdist <eggspace>
-    ...
-
-
-Activation in general
----------------------
-
-Show activation status for bdists and sdists:
-::
-    % mrsd status
-    ...
-    % mrsd status <eggspace> [bdist: sdist:]
-    ...
-
-Activate/deactivate mrsd (won't change activation of single eggs):
-::
-    % mrsd activate
-    ...
-
-behind the scenes: mrsd hookin, mrsd develop activate?
-
-    % mrsd deactivate
-    ...
-
-behind the scenes: mrsd unhook, mrsd develop deactivate?
-
-
-Activativation of specific eggs
--------------------------------
-
-    % mrsd activate <eggspace>
-    ...
-
-    % mrsd deactivate <eggspace>
+We use bdist/egg and sdist/src synonymously (at least as long as we are solely
+working with eggs and buildout).
 
 
 Custom copy of egg

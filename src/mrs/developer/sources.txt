@@ -1,0 +1,47 @@
+Sources and Packages and Eggs
+=============================
+
+Terminology
+-----------
+
+Based on to http://guide.python-distribute.org/.
+
+A Source is the source for packages:
+
+    - directory on the filesystem (``~.buildout/eggs/``, ``./eggs/``)
+    - pypi (``http://pypi.python.org/simple``)
+
+A package has releases.
+
+A release contains zero or one source distributions and zero or more binary
+distributions.
+
+A distribution is versioned.
+
+A distribution contains zero or more python packages.
+
+A binary distribution is created from a source distribution.
+
+A binary egg is a binary distribution and vice versa.
+
+A development egg is a source distribution and vice versa.
+
+
+
+Within a source an egg is uniquly identified by its name.
+One egg can have multiple versions.
+
+    >>> buildout_cache = Source('~/.buildout/eggs')
+    >>> zcb = buildout_cache['zc.buildout'] 
+    >>> zcb.versions
+
+
+    >>> pypi = Source('https://pypi.python.org/simple')
+    >>> package = pypi['zc.buildout']
+    >>> package.keys()
+    ['1.1', '1.2', '1.3a']
+    >>> release = package['1.1']
+    >>> release.keys()
+    ['sdist', '2.4', '2.6']
+    >>> sdist = release['sdist']
+
