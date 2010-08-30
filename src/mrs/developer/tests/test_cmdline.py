@@ -121,8 +121,7 @@ def test_suite():
     m += manuel.codeblock.Manuel()
     m += Manuel()
     return manuel.testing.TestSuite(m,
-            #'../README.txt'
-            '../tests.txt',
+            'tests.',
             )
 
 if __name__ == '__main__':
