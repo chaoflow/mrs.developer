@@ -10,3 +10,5 @@ Todo
 
 - figure out what commands need a config and which can run unrooted
 - loaded config has only absolute paths, paths are relativated on save
+
+- keep order of entrypoints for cmds

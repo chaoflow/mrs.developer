@@ -45,5 +45,16 @@ setup(name='mrs.developer',
           'zc.buildout.extension': ['ext = mrs.developer.extensions:load'],
           # run mrsd hookin to hook into generated scripts
           'zc.buildout.unloadextension': ['ext = mrs.developer.extensions:unload'],
-          },
+          'mrs.developer.commands': [
+              'init = mrs.developer.mrsd:Init',
+              'stock = mrs.developer.mrsd:Stock',
+              'customize = mrs.developer.mrsd:Customize',
+              'paths = mrs.developer.mrsd:Paths',
+              'hookin = mrs.developer.mrsd:Hookin',
+              'unhook = mrs.developer.mrsd:Unhook',
+              'develop = mrs.developer.develop:Develop',
+              'checkout = mrs.developer.develop:Checkout',
+              'test = mrs.developer.mrsd:Test',
+          ]
+      },
       )
