@@ -10,13 +10,12 @@ except ImportError:
     import simplejson as json
 
 from odict import odict
+from pkg_resources import iter_entry_points
 
 from mrs.developer.base import Cmd
 from mrs.developer.base import CmdWrapper
 from mrs.developer.base import check_call
 from mrs.developer.base import logger
-from mrs.developer.develop import Checkout
-from mrs.developer.develop import Develop
 
 DEFAULT_CFG_FILE = '.mrsd'
 
@@ -324,6 +323,12 @@ class Test(CmdWrapper):
 class CmdSet(object):
     """The mrsd command set.
     """
+
+    entry_point_keys = {
+        'commands': 'mrs.developer.commands',
+        'aliases': 'mrs.developer.aliases'
+    }
+
     @property
     def root(self):
         try:
@@ -334,17 +339,12 @@ class CmdSet(object):
     def __init__(self):
         self.cfg = dict()
         self.cfg_file = None
-        self.cmds = odict([
-                ('init', Init('init', self)),
-                ('stock', Stock('stock', self)),
-                ('customize', Customize('customize', self)),
-                ('paths', Paths('paths', self)),
-                ('hookin', Hookin('hookin', self)),
-                ('unhook', Unhook('unhook', self)),
-                ('develop', Develop('develop', self)),
-                ('checkout', Checkout('checkout', self)),
-                ('test', Test('test', self)),
-                ])
+        self.cmds = odict()
+        self.aliases = {}
+        for ep in iter_entry_points(self.entry_point_keys['commands']):
+            self.cmds[ep.name] = ep.load()(ep.name, self)
+        for ep in iter_entry_points(self.entry_point_keys['aliases']):
+            self.aliases[ep.name] = ep.load()()
 
     def __getattr__(self, name):
         try:

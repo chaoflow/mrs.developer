@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import argparse
 try:
     import json
@@ -39,7 +40,14 @@ class ConsoleScript(CmdSet):
             cmd_parser.set_defaults(cmd=cmd)
             if isinstance(cmd, CmdWrapper):
                 cmd_parser.only_known_args = True
-        pargs = parser.parse_args()
+        expargs = []
+        try:
+            expargs.append(self.aliases.get(sys.argv[1], sys.argv[1]))
+        except IndexError:
+            pass
+        else:
+            expargs.extend(sys.argv[2:])
+        pargs = parser.parse_args(expargs)
         if pargs.debug:
             logging.basicConfig(level=logging.DEBUG)
         else:
