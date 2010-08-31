@@ -134,16 +134,16 @@ class Patch(Cmd):
                 '--list',
                 dest='action',
                 action='store_const',
-                const=self.list
-                help=self.list.__doc__
+                const=self.list,
+                help=self.list.__doc__,
                 default=True,
                 )
         action.add_argument(
                 '--generate',
                 dest='action',
                 action='store_const',
-                const=self.generate
-                help=self.list.__doc__
+                const=self.generate,
+                help=self.list.__doc__,
                 default=True,
                 )
         action.add_argument(
@@ -156,7 +156,7 @@ class Patch(Cmd):
         """List patches for namespace.
         """
         return self.patches
-        
+
     def generate(self, namespace):
         """Generate patches from customized bdist eggs.
         """
@@ -169,6 +169,7 @@ class Patch(Cmd):
 #        for egg in eggspace if egg in self.patches:
 #            self._customize(egg)
 #            self._patch(egg, self.patches[egg.name])
+        pass
 
     def _patch(self, egg, patches):
         """Apply patches to egg
