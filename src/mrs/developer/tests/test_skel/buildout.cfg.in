@@ -1,0 +1,9 @@
+[buildout]
+extensions = mrs.developer
+parts = example
+develop = <mrsd-develop-path>
+
+[example]
+recipe = zc.recipe.egg
+eggs =
+interpreter = example-py

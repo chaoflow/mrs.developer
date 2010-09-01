@@ -1,0 +1,7 @@
+[buildout]
+parts = mrsd
+develop = <mrsd-develop-path>
+
+[mrsd]
+recipe = zc.recipe.egg:scripts
+eggs = mrs.developer
