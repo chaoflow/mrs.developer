@@ -33,8 +33,7 @@ setup(name='mrs.developer',
       ],
       extras_require={
           'test': [
-              'plone.testing',
-              'manuel',
+              'sphinx.testing [layer]',
           ]
       },
       entry_points={
