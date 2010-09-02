@@ -145,8 +145,7 @@ class List(Cmd):
     def __call__(self, pargs=None):
         """So far we just list all distributions used by the current env
         """
-        dists = [x for x in PyScriptDir(os.path.join(self.root, 'bin'))]
-        return dists
+        return [x for x in PyScriptDir(os.path.join(self.root, 'bin'))]
 
     def init_argparser(self, parser):
         """Add our arguments to a parser.
