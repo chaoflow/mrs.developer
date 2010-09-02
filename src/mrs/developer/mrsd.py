@@ -22,59 +22,6 @@ import mrs.developer.distributions
 DEFAULT_CFG_FILE = '.mrsd'
 
 
-class Customize(Cmd):
-    """Create a copy of a stock egg inside the custom_eggs_dir.
-
-    Will be set up as git repo.
-
-    Understood eggspaces are: name of an egg, patched (eggs we have patches for).
-    """
-    def _initialize(self):
-        # cfg defaults
-        self.cfg.setdefault('custom_eggs_dir', 'eggs-mrsd')
-
-    def __call__(self, egg_names=None, pargs=None):
-        if pargs is not None:
-            egg_names = pargs.egg_name
-        custom_eggs_dir = os.path.join(
-                self.root or os.path.curdir,
-                self.cfg['custom_eggs_dir'],
-                )
-        eggspaces = self.cmds.stock()
-        if not isinstance(egg_names, list):
-            egg_names = [egg_names]
-        for egg_name in egg_names:
-            for name, eggspace in eggspaces.iteritems():
-                try:
-                    stock_path = eggspace[egg_name]
-                except KeyError:
-                    continue
-                else:
-                    break
-            else:
-                raise ValueError(u"Egg %s not in stock" % (egg_name,))
-            custom_path = os.path.join(custom_eggs_dir, egg_name)
-            # create the parent directory
-            if not os.path.isdir(custom_eggs_dir):
-                os.mkdir(custom_eggs_dir)
-            # copy the stock egg to customized eggs
-            shutil.copytree(stock_path, custom_path, symlinks=True)
-            # initialize as a git repo and create initial commit
-            check_call(['git', 'init'], cwd=custom_path)
-            check_call(['git', 'add', '.'], cwd=custom_path)
-            check_call(['git', 'commit', '-m', 'initial from: %s' % (stock_path,)],
-                    cwd=custom_path)
-            check_call(['git', 'tag', 'initial'], cwd=custom_path)
-
-    def init_argparser(self, parser):
-        """Add our arguments to a parser
-        """
-        parser.add_argument(
-                'eggspace',
-                nargs='+',
-                help='Eggspace to customize.',
-                )
-
 class Patch(Cmd):
     """Patch management, list, generate and apply patches on bdist eggs.
     """
@@ -144,26 +91,6 @@ class Patch(Cmd):
             patch(egg)
 
 
-class Paths(Cmd):
-    """Return the paths to be injected into a script's sys.path.
-    """
-    def __call__(self, pargs=None):
-        """script is the (relative) path to the script
-        """
-        custom_eggs_dir = os.path.join(
-                self.root or os.curdir,
-                self.cfg['custom_eggs_dir']
-                )
-        # dir may not exist
-        if os.path.exists(custom_eggs_dir):
-            # For now we return one list for all
-            paths = [os.path.join(custom_eggs_dir, x)
-                     for x in os.listdir(custom_eggs_dir)]
-            return paths
-        else:
-            return []
-
-
 class HookCmd(Cmd):
     start_indicator = '\n### mrs.developer'
     stop_indicator = '### mrs.developer: end.\n'
@@ -206,7 +133,7 @@ except ImportError:
 from subprocess import Popen, PIPE
 
 paths = Popen(
-       ["mrsd", "paths"],
+       ["mrsd", "list", "cloned"],
        stdout=PIPE,
        ).communicate()[0]
 if paths:
@@ -236,7 +163,7 @@ if paths:
         f = open(script, 'w')
         f.write(hooked)
         f.close()
-        logger.info("Hooked into %s." % (script,))
+        logger.info("Hooked in: %s." % (script,))
 
     _cmd = _hookin
 

@@ -126,23 +126,39 @@ class Buildout(FSNode):
         """
 
 
-
 class List(Cmd):
     """List distributions, by default all distributions used by the current
     environment.
     """
-    def __call__(self, pargs=None):
+    def __call__(self, channels=None, pargs=None):
         """So far we just list all distributions used by the current env
         """
         if not self.root:
             logger.error("Not rooted, run 'mrsd init'.")
             return
-        pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
+        if channels is None:
+            channels = pargs.channel
+            if not channels:
+                pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
+                return [x for x in pyscriptdir]
+        if type(channels) not in (tuple, list):
+            channels = (channels,)
+        for channel in channels:
+            if channel == "cloned":
+                cloned = Directory(os.path.join(self.root, 'eggs-mrsd'))
+                return [x.abspath for x in cloned.values()]
+
         return [x for x in pyscriptdir]
 
     def init_argparser(self, parser):
         """Add our arguments to a parser.
         """
+        parser.add_argument(
+                'channel',
+                nargs='*',
+                help='Distributions to clone, can be a single distribution.',
+                )
+
 
 def copy(dist, dir_):
     """copies a binary distribution to a directory
@@ -203,5 +219,6 @@ class Clone(Cmd):
         parser.add_argument(
                 'dist',
                 nargs='*',
-                help='Distribution to clone.',
+                help='Distributions to clone. If None will list all '
+                     'distributions used by the local env, the local channel.',
                 )
