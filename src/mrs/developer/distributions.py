@@ -15,7 +15,7 @@ from mrs.developer.node import LazyNode
 class Distribution(FSNode):
     """A distribution
     """
-    
+
 
 class SDist(Distribution):
     """A source distribution
@@ -44,7 +44,7 @@ def distFromPath(path):
         logger.error(msg)
         raise RuntimeError(msg)
     return BDist(path)
-        
+
 
 class PyScript(FSNode):
     """A channel that returns distributions used by a python script
@@ -185,7 +185,10 @@ class Clone(Cmd):
     def _clone(self, dist):
         # find the distribution
         pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
-        source = pyscriptdir[dist]
+        if not os.path.isabs(dist):
+            source = pyscriptdir[os.path.abspath(dist)]
+        else:
+            source = pyscriptdir[dist]
         target = copy(source, Directory(os.path.join(self.root, 'eggs-mrsd')))
         # initialize as a git repo and create initial commit
         check_call(['git', 'init'], cwd=target.abspath)
@@ -193,7 +196,7 @@ class Clone(Cmd):
         check_call(['git', 'commit', '-m', 'initial from: %s' % (source.abspath,)],
                 cwd=target.abspath)
         check_call(['git', 'tag', 'initial'], cwd=target.abspath)
-        
+
     def init_argparser(self, parser):
         """Add our arguments to a parser.
         """

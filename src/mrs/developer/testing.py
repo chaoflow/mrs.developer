@@ -22,7 +22,7 @@ class MrsDeveloperFixture(plone.testing.Layer):
         self['buildout-directory'] = dst
 
     def tearDown(self):
-        subprocess.check_call('rm ' + self['buildout-directory'] + '* -R',
+        subprocess.check_call('rm ' + self['buildout-directory'] + '* -Rf',
                     shell=True)
 
     def testSetUp(self):

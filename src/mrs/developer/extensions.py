@@ -22,6 +22,7 @@ class LoadExtension(Extension):
     does not know about them.
     """
     def __call__(self):
+        return
         develop = self.buildout['buildout']['develop']
         ours = self.cmdset.cfg['develop'].values()
         self.buildout['buildout']['develop'] = str("\n".join([develop] + ours))
@@ -31,6 +32,7 @@ class UnloadExtension(Extension):
     """Called after config is parsed
     """
     def __call__(self):
+        self.cmdset.cmds['init']()
         self.cmdset.cmds['hookin']()
 
 
