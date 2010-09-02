@@ -54,6 +54,7 @@ class PyScript(FSNode):
             line = line.strip()
             if line.startswith('sys.path[0:0] = ['):
                 consume = True
+                continue
             elif line == ']':
                 break
             elif not consume:
@@ -78,15 +79,23 @@ class PyScriptDir(FSNode):
     """A channel for all distributions from python scripts in a file
     """
     def _iterchildkeys(self):
+        self.seen = {}
         for item in Directory(self.fspath).values():
             if os.path.isdir(item.fspath):
                 for key in PyScriptDir(item.fspath):
-                    yield key
+                    if key not in self.seen:
+                        self.seen[key] = None
+                        yield key
             elif os.path.isfile(item.fspath):
-                for dist in PyScript(item.fspath):
-                    yield dist
+                for key in PyScript(item.fspath):
+                    if key not in self.seen:
+                        self.seen[key] = None
+                        yield key
             else:
                 import ipdb;ipdb.set_trace()
+
+    def _createchild(self, path):
+        return distFromPath(path)
 
 
 class UnionNode(LazyNode):
