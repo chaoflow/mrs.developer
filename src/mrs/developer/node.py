@@ -40,6 +40,10 @@ class LazyNode(object):
             return self._keys.__iter__()
         except AttributeError:
             self._keys = odict()
+            def wrap(self):
+                for key in self._iterchildkeys:
+                    self._keys[key] = NotLoaded
+                    yield key
             return self._iterchildkeys()
 
     def _iterchildkeys(self):

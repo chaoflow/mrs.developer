@@ -1,7 +1,8 @@
 from mrs.developer.node import File
+from mrs.developer.node import LazyNode
 
 
-class Distribution(Node):
+class Distribution(LazyNode):
     """A distribution
     """
     
@@ -35,7 +36,7 @@ def distFromPath(path):
     return Bdist(path)
         
 
-class PyScript(Node):
+class PyScript(LazyNode):
     """A channel that returns distributions used by a python script
     """
     def _iterchildkeys(self):
@@ -60,13 +61,8 @@ class PyScript(Node):
                 continue
             yield key
 
-    def _createchild(self, key):
-        return distFromPath(key)
-
-
-class UnionNode(Node):
-    """Returns the union of its backends
-    """
+    def _createchild(self, path):
+        return distFromPath(path)
 
 
 class PyScriptDir(Node):
@@ -82,15 +78,29 @@ class PyScriptDir(Node):
                     yield dist
 
 
+class UnionNode(Node):
+    """Returns the union of its backends
+    """
+
+
+
+class Part(Node):
+    """A part of a buildout, having scripts as children
+    """
+
+
 class Buildout(Node):
     """A buildout projecto
 
     Parts are children, the rest is attributes
     """
-    def _load_keys(self):
-        """load binary and source distributions used by our buildout
-        """ 
+    def _iterchildkeys(self):
+        """Return the iterator over part names
+        """
 
+    def _createchild(self, key):
+        """Return a Part node for key
+        """
 
 
 
