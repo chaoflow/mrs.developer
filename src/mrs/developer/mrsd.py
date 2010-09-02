@@ -74,7 +74,7 @@ class Customize(Cmd):
                 self.root or os.path.curdir,
                 self.cfg['custom_eggs_dir'],
                 )
-        eggspaces = self.parent.stock()
+        eggspaces = self.cmds.stock()
         if not isinstance(egg_names, list):
             egg_names = [egg_names]
         for egg_name in egg_names:
@@ -254,7 +254,7 @@ if paths:
         content = f.read()
         f.close()
         if self.start_indicator in content:
-            self.parent.cmds['unhook']()
+            self.cmds.unhook()
             f = open(script, 'r')
             content = f.read()
             f.close()
@@ -305,7 +305,7 @@ class Init(Cmd):
     def __call__(self, path=None, pargs=None):
         cfg_file = os.path.abspath(DEFAULT_CFG_FILE)
         reinit = os.path.isfile(cfg_file)
-        self.parent.save_config(cfg_file)
+        self.cmds.save_config(cfg_file)
         if reinit:
             logger.info(u"Reinitialized mrsd root at %s." % \
                     (os.path.abspath(os.curdir)))
@@ -374,10 +374,10 @@ class CmdSet(object):
         except IOError:
             # check in parent dir
             head, tail = os.path.split(cfg_file)
-            parent = os.path.dirname(head)
-            if head == parent:
+            pardir = os.path.dirname(head)
+            if head == pardir:
                 raise RuntimeError("Found no configuration to load.")
-            cfg_file = os.path.join(parent, tail)
+            cfg_file = os.path.join(pardir, tail)
             self.load_config(cfg_file)
         else:
             logger.debug("Loaded config from %s." % (cfg_file,))
