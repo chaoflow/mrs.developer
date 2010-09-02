@@ -94,7 +94,7 @@ class FSNode(LazyNode):
     """A directory or file on the local filesystem.
     """
     @property
-    def fspath(self):
+    def abspath(self):
         """The path of a local filesystem node is a string.
         """
         return os.path.join(*self.path)
@@ -106,7 +106,7 @@ class File(FSNode):
     We break with nodethink, suggestions welcome.
     """
     def __iter__(self):
-        handle = open(self.fspath)
+        handle = open(self.abspath)
         for line in handle:
             yield line
         handle.close()
@@ -120,7 +120,7 @@ class Directory(FSNode):
     def _iterchildkeys(self):
         """The items in a directory are already unique
         """
-        for key in os.listdir(self.fspath):
+        for key in os.listdir(self.abspath):
             if self.blacklisted(key):
                 continue
             self._keys[key] = NotLoaded
@@ -130,7 +130,7 @@ class Directory(FSNode):
         return key in self.blacklist
 
     def _createchild(self, key):
-        path = os.path.join(self.fspath, key)
+        path = os.path.join(self.abspath, key)
         if os.path.isdir(path):
             val = Directory(key)
         elif os.path.isfile(path):

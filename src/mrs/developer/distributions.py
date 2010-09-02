@@ -1,6 +1,8 @@
 import os
 import shutil
 
+from subprocess import check_call
+
 from mrs.developer.base import Cmd
 from mrs.developer.base import logger
 from mrs.developer.node import Directory
@@ -10,7 +12,7 @@ from mrs.developer.node import LazyNode
 
 
 
-class Distribution(LazyNode):
+class Distribution(FSNode):
     """A distribution
     """
     
@@ -41,7 +43,7 @@ def distFromPath(path):
         msg = 'Only bdists ending in .egg so far: %s.' % (path,)
         logger.error(msg)
         raise RuntimeError(msg)
-    return Bdist(path)
+    return BDist(path)
         
 
 class PyScript(FSNode):
@@ -51,7 +53,7 @@ class PyScript(FSNode):
         """Our keys are the paths to distributions used by our script
         """
         consume = False
-        for line in File(self.fspath):
+        for line in File(self.abspath):
             line = line.strip()
             if line.startswith('sys.path[0:0] = ['):
                 consume = True
@@ -81,14 +83,14 @@ class PyScriptDir(FSNode):
     """
     def _iterchildkeys(self):
         self.seen = {}
-        for item in Directory(self.fspath).values():
-            if os.path.isdir(item.fspath):
-                for key in PyScriptDir(item.fspath):
+        for item in Directory(self.abspath).values():
+            if os.path.isdir(item.abspath):
+                for key in PyScriptDir(item.abspath):
                     if key not in self.seen:
                         self.seen[key] = None
                         yield key
-            elif os.path.isfile(item.fspath):
-                for key in PyScript(item.fspath):
+            elif os.path.isfile(item.abspath):
+                for key in PyScript(item.abspath):
                     if key not in self.seen:
                         self.seen[key] = None
                         yield key
@@ -145,7 +147,14 @@ class List(Cmd):
 def copy(dist, dir_):
     """copies a binary distribution to a directory
     """
-    shutil.copytree(dist.fspath, dir_)
+    head, tail = os.path.split(dist.abspath)
+    target = BDist(os.path.join(dir_.abspath, tail))
+    shutil.copytree(
+            dist.abspath,
+            target.abspath,
+            symlinks=True,
+            )
+    return target
 
 
 class Clone(Cmd):
@@ -166,7 +175,9 @@ class Clone(Cmd):
             return
         if dists is None:
             dists = pargs.dist
-        if type(dists) in (tuple, list):
+            if not dists:
+                return self.cmds.list()
+        if type(dists) not in (tuple, list):
             dists = (dists,)
         for dist in dists:
             self._clone(dist)
@@ -174,19 +185,20 @@ class Clone(Cmd):
     def _clone(self, dist):
         # find the distribution
         pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
-        import ipdb;ipdb.set_trace()
-        dist = pyscriptdir[dist]
-        return copy(
-                dist,
-                Directory(os.path.join(self.root, 'eggs-mrsd'))
-                )
-
-
+        source = pyscriptdir[dist]
+        target = copy(source, Directory(os.path.join(self.root, 'eggs-mrsd')))
+        # initialize as a git repo and create initial commit
+        check_call(['git', 'init'], cwd=target.abspath)
+        check_call(['git', 'add', '.'], cwd=target.abspath)
+        check_call(['git', 'commit', '-m', 'initial from: %s' % (source.abspath,)],
+                cwd=target.abspath)
+        check_call(['git', 'tag', 'initial'], cwd=target.abspath)
+        
     def init_argparser(self, parser):
         """Add our arguments to a parser.
         """
         parser.add_argument(
                 'dist',
-                #nargs='+',
+                nargs='*',
                 help='Distribution to clone.',
                 )
