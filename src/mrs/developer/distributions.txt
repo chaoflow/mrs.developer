@@ -88,11 +88,7 @@ List all cloned distributions:
 
 .. code-block:: console
 
-<<<<<<< Updated upstream
-    % mrsd list cloned
-=======
     % ./bin/mrsd list
->>>>>>> Stashed changes
     [
         "/.../eggs/distribute-0.6.14-py2.6.egg",
         "/.../eggs/zc.buildout-1.5.1-py2.6.egg",
