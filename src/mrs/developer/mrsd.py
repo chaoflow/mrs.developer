@@ -22,42 +22,6 @@ import mrs.developer.distributions
 DEFAULT_CFG_FILE = '.mrsd'
 
 
-class Stock(Cmd):
-    """Return dictionary of stock eggs.
-
-    Format: stock = { namespace = { egg_name = egg_source } }.
-    Namespace for now is the relative paths to the script the egg reference was
-    found in.
-    """
-    def __call__(self, pargs=None):
-        """Dump all known eggs
-        """
-        scriptdir = os.path.join(
-                self.root or os.curdir,
-                self.cfg['scripts_dir']
-                )
-        stock = dict()
-        paths = set()
-        for script in [x for x in os.listdir(scriptdir) if not x[0] == '.']:
-            scriptpath = os.path.join(scriptdir, script)
-            f = open(scriptpath)
-            paths = self._paths(f.read())
-            f.close()
-            eggspace = stock[scriptpath] = dict()
-            for path in paths:
-                if not path.endswith('.egg'):
-                    continue
-                name = path.split(os.path.sep)[-1].split('-')[0]
-                eggspace[name] = path
-        return stock
-
-    def _paths(self, script):
-        start_str = 'sys.path[0:0] = ['
-        start = script.find(start_str) + len(start_str)
-        end = script.find(']', start)
-        return [x.split("'")[1] for x in script[start:end].split()]
-
-
 class Customize(Cmd):
     """Create a copy of a stock egg inside the custom_eggs_dir.
 
