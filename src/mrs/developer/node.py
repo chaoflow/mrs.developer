@@ -5,7 +5,6 @@ Everybody should once write a node from scratch...
 import os
 
 from odict import odict
-from zope.location import locate
 from zope.location import LocationIterator
 
 
@@ -25,13 +24,13 @@ class LazyNode(object):
             val = self._keys[key]
         except TypeError:
             # this initializes
-            iter(self)
-        else:
-            if val is NotLoaded:
-                val = self._createchild(key)
-                val.__parent__ = self
-                self._keys[key] = val
-            return val
+            self.keys()
+            val = self._keys[key]
+        if val is NotLoaded:
+            val = self._createchild(key)
+            val.__parent__ = self
+            self._keys[key] = val
+        return val
 
     def __iter__(self):
         """wrt to ldap and secondary keys iterchildkeys should return a tuple
@@ -48,17 +47,18 @@ class LazyNode(object):
                     yield key
             return wrap(self)
 
+
     def _iterchildkeys(self):
         """Iterate over the child keys.
-        
+
         You have to at least ``self._keys[key] = NotLoaded``.
-        
+
         (see also ``__iter__`` and ``__getitem__``).
         """
         raise NotImplemented
 
     def itervalues(self):
-        for x in self.__iter__():
+        for key in self.__iter__():
             yield self.__getitem__(key)
 
     def _createchild(self, key):
