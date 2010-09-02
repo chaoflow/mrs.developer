@@ -51,8 +51,9 @@ setup(name='mrs.developer',
               'hookin = mrs.developer.mrsd:Hookin',
               'hookout = mrs.developer.mrsd:Hookout',
               'test = mrs.developer.mrsd:Test',
-              'clone = mrs.developer.distributions:Clone',
               'list = mrs.developer.distributions:List',
+              'clone = mrs.developer.distributions:Clone',
+              'patch = mrs.developer.distributions:Patch',
           ]
       },
       )

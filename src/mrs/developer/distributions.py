@@ -130,6 +130,15 @@ class List(Cmd):
     """List distributions, by default all distributions used by the current
     environment.
     """
+    def init_argparser(self, parser):
+        """Add our arguments to a parser.
+        """
+        parser.add_argument(
+                'channel',
+                nargs='*',
+                help='Distributions to clone, can be a single distribution.',
+                )
+
     def __call__(self, channels=None, pargs=None):
         """So far we just list all distributions used by the current env
         """
@@ -149,15 +158,6 @@ class List(Cmd):
                 return [x.abspath for x in cloned.values()]
 
         return [x for x in pyscriptdir]
-
-    def init_argparser(self, parser):
-        """Add our arguments to a parser.
-        """
-        parser.add_argument(
-                'channel',
-                nargs='*',
-                help='Distributions to clone, can be a single distribution.',
-                )
 
 
 def copy(dist, dir_):
@@ -182,6 +182,16 @@ class Clone(Cmd):
 
         For now, just bdist support
     """
+    def init_argparser(self, parser):
+        """Add our arguments to a parser.
+        """
+        parser.add_argument(
+                'dist',
+                nargs='*',
+                help='Distributions to clone. If None will list all '
+                     'distributions used by the local env, the local channel.',
+                )
+
     def __call__(self, dists=None, pargs=None):
         """Execute the command, will receive parser args from argparse, when
         run from cmdline.
@@ -213,12 +223,80 @@ class Clone(Cmd):
                 cwd=target.abspath)
         check_call(['git', 'tag', 'initial'], cwd=target.abspath)
 
+
+class Patch(Cmd):
+    """Patch management, list, generate and apply patches on bdist eggs.
+    """
+    def _initialize(self):
+        # read a list of available patches
+        patches_dir = self.cfg.setdefault('patches_dir', 'eggs-patches')
+        patches_dir = os.path.join(
+                self.root or os.curdir,
+                patches_dir,
+                )
+        if not os.path.isdir(patches_dir):
+            os.mkdir(patches_dir)
+        for pkg in os.listdir(patches_dir):
+            self.patches[pkg] = []
+            pkg_patch_dir = os.path.join(patches_dir, pkg)
+            for patch in os.listdir(pkg_patch_dir):
+                patch = os.path.abspath(patch)
+                self.patches[pkg].append(patch)
+
     def init_argparser(self, parser):
-        """Add our arguments to a parser.
+        """Add our arguments to a parser
         """
+        actions = parser.add_mutually_exclusive_group()
+        actions.add_argument(
+                '--list',
+                dest='action',
+                action='store_const',
+                const=self.list,
+                help=self.list.__doc__,
+                )
+        actions.add_argument(
+                '--generate',
+                dest='action',
+                action='store_const',
+                const=self.generate,
+                help=self.list.__doc__,
+                )
+        actions.add_argument(
+                '--apply',
+                dest='action',
+                action='store_const',
+                const=self.generate,
+                help=self.list.__doc__,
+                )
         parser.add_argument(
                 'dist',
                 nargs='*',
-                help='Distributions to clone. If None will list all '
-                     'distributions used by the local env, the local channel.',
+                help='Eggspace to customize.',
                 )
+
+    def list(self, namespace):
+        """List patches for namespace.
+        """
+        return self.patches
+
+    def generate(self, namespace):
+        """Generate patches from customized bdist eggs.
+        """
+        check_call(['git', 'add', '.'], cwd=target.abspath)
+
+
+    def apply(self, namespace):
+        """Apply patches for namespace.
+        """
+
+    def __call__(self, pargs=None):
+#        for egg in eggspace if egg in self.patches:
+#            self._customize(egg)
+#            self._patch(egg, self.patches[egg.name])
+        pass
+
+    def _patch(self, egg, patches):
+        """Apply patches to egg
+        """
+        for patch in patches:
+            patch(egg)
