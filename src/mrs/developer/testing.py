@@ -15,9 +15,9 @@ class MrsDeveloperFixture(plone.testing.Layer):
                     cwd=dst, shell=True)
         subprocess.check_call('./mrs.developer/bin/python bootstrap.py',
                     cwd=dst, shell=True)
-        subprocess.check_call('./bin/buildout -vc init.cfg',
+        subprocess.check_call('./bin/buildout -c init.cfg',
                     cwd=dst, shell=True)
-        subprocess.check_call('./bin/buildout -v',
+        subprocess.check_call('./bin/buildout',
                     cwd=dst, shell=True)
         self['buildout-directory'] = dst
 
