@@ -265,7 +265,7 @@ class Patch(Cmd):
                 '--apply',
                 dest='action',
                 action='store_const',
-                const=self.generate,
+                const=self.apply,
                 help=self.list.__doc__,
                 )
         parser.add_argument(

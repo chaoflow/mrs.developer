@@ -80,12 +80,12 @@ except ImportError:
     import simplejson as json
 from subprocess import Popen, PIPE
 
-paths = Popen(
+mrsdpaths = Popen(
        ["mrsd", "list", "cloned"],
        stdout=PIPE,
        ).communicate()[0]
-if paths:
-    sys.path[0:0] = json.loads(paths)
+if mrsdpaths:
+    sys.path[0:0] = json.loads(mrsdpaths)
 %s"""
 
     def _hookin(self, script):

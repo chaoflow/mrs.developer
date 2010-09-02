@@ -26,7 +26,7 @@ class LazyNodeTest(unittest.TestCase):
         self.assertEqual(node1._keys, None)
         self.assertIsInstance(node1['buildout.cfg'], File)
         self.assertEqual(node1['buildout.cfg'].__name__, 'buildout.cfg')
-        self.assertEqual(node1._keys.keys(),
+        self.assertEqual(sorted(node1._keys.keys()),
                          ['bootstrap.py', 'buildout.cfg', 'init.cfg'])
 
 
