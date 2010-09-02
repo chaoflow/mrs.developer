@@ -1,9 +1,6 @@
 [buildout]
 parts = mrsd
-develop =
-    .
-    ../plone.testing
-    ../sphinx.testing
+develop = <mrsd-develop-path>
 
 [mrsd]
 recipe = zc.recipe.egg:scripts
