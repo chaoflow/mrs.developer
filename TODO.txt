@@ -12,3 +12,6 @@ Todo
 - loaded config has only absolute paths, paths are relativated on save
 
 - keep order of entrypoints for cmds
+
+- nodify the mrsd.cmdset, they take and return nodes, mrsd serializes nodes
+  into json

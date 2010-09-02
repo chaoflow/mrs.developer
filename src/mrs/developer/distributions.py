@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from mrs.developer.base import Cmd
 from mrs.developer.base import logger
@@ -131,15 +132,20 @@ class List(Cmd):
     def __call__(self, pargs=None):
         """So far we just list all distributions used by the current env
         """
-        if self.root:
-            self.pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
-            return [x for x in self.pyscriptdir]
-        else:
+        if not self.root:
             logger.error("Not rooted, run 'mrsd init'.")
+            return
+        pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
+        return [x for x in pyscriptdir]
 
     def init_argparser(self, parser):
         """Add our arguments to a parser.
         """
+
+def copy(dist, dir_):
+    """copies a binary distribution to a directory
+    """
+    shutil.copytree(dist.fspath, dir_)
 
 
 class Clone(Cmd):
@@ -151,10 +157,30 @@ class Clone(Cmd):
 
         For now, just bdist support
     """
-    def __call__(self, pargs=None):
+    def __call__(self, dists=None, pargs=None):
         """Execute the command, will receive parser args from argparse, when
         run from cmdline.
         """
+        if not self.root:
+            logger.error("Not rooted, run 'mrsd init'.")
+            return
+        if dists is None:
+            dists = pargs.dist
+        if type(dists) in (tuple, list):
+            dists = (dists,)
+        for dist in dists:
+            self._clone(dist)
+
+    def _clone(self, dist):
+        # find the distribution
+        pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
+        import ipdb;ipdb.set_trace()
+        dist = pyscriptdir[dist]
+        return copy(
+                dist,
+                Directory(os.path.join(self.root, 'eggs-mrsd'))
+                )
+
 
     def init_argparser(self, parser):
         """Add our arguments to a parser.
