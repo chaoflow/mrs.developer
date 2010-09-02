@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 import sys
 
-version = '-17'
+version = '0'
 shortdesc = "Mrs. Developer"
 longdesc = open(os.path.join(os.path.dirname(__file__), 'README.txt')).read()
 
