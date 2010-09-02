@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
-import sys, os
+import os
+import sys
 
 version = '0.1'
 shortdesc = "Mrs. Developer"
@@ -32,8 +33,7 @@ setup(name='mrs.developer',
       ],
       extras_require={
           'test': [
-              'manuel',
-              'interlude',
+              'sphinx.testing [layer]',
           ]
       },
       entry_points={

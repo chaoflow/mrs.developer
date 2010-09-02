@@ -1,5 +1,11 @@
+ajslkdj alsdja dsfjvisodfj
+adif ojvai'fdjva'idfv
 
 .. code-block:: console
+
+    # echo \
+    > hello3
+    hello3
 
     $ echo hello
     hello
@@ -8,7 +14,15 @@
     > hello2
     hello2
 
+.. code-block:: console
+    :layer: some.Layer
+
     # echo \
     > hello3
     hello3
 
+:: 
+    aksjdf klasjds dkljf asf
+    adgj fadjga
+
+.. note:: lajgf idjfgilajdfgila djfgli
