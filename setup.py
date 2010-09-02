@@ -30,6 +30,7 @@ setup(name='mrs.developer',
           # we currently ship our own argparse
           #'argparse',
           'odict',
+          'zope.location',
       ],
       extras_require={
           'test': [
@@ -47,14 +48,16 @@ setup(name='mrs.developer',
           'zc.buildout.unloadextension': ['ext = mrs.developer.extensions:unload'],
           'mrs.developer.commands': [
               'init = mrs.developer.mrsd:Init',
+              'hookin = mrs.developer.mrsd:Hookin',
+              'hookout = mrs.developer.mrsd:Hookout',
+              'list = mrs.developer.distributions:List',
+              'test = mrs.developer.mrsd:Test',
+
               'stock = mrs.developer.mrsd:Stock',
               'customize = mrs.developer.mrsd:Customize',
               'paths = mrs.developer.mrsd:Paths',
-              'hookin = mrs.developer.mrsd:Hookin',
-              'unhook = mrs.developer.mrsd:Unhook',
               'develop = mrs.developer.develop:Develop',
               'checkout = mrs.developer.develop:Checkout',
-              'test = mrs.developer.mrsd:Test',
           ]
       },
       )

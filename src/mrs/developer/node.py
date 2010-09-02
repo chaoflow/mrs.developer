@@ -2,7 +2,9 @@
 
 Everybody should once write a node from scratch...
 """
-from odict.pyodict import nil
+import os
+
+from odict import odict
 from zope.location import locate
 from zope.location import LocationIterator
 
@@ -15,7 +17,7 @@ class LazyNode(object):
     """Stuff we expect from our base of all bases
     """
     def __init__(self, name=None):
-        self.__name__ = __name__
+        self.__name__ = name
         self._keys = None
 
     def __getitem__(self, key):
@@ -41,10 +43,10 @@ class LazyNode(object):
         except AttributeError:
             self._keys = odict()
             def wrap(self):
-                for key in self._iterchildkeys:
+                for key in self._iterchildkeys():
                     self._keys[key] = NotLoaded
                     yield key
-            return self._iterchildkeys()
+            return wrap(self)
 
     def _iterchildkeys(self):
         """Iterate over the child keys.
@@ -55,6 +57,10 @@ class LazyNode(object):
         """
         raise NotImplemented
 
+    def itervalues(self):
+        for x in self.__iter__():
+            yield self.__getitem__(key)
+
     def _createchild(self, key):
         """factor a child for key
 
@@ -64,6 +70,9 @@ class LazyNode(object):
 
     def keys(self):
         return [x for x in self.__iter__()]
+
+    def values(self):
+        return [self.__getitem__(x) for x in self.__iter__()]
 
     @property
     def path(self):
@@ -81,14 +90,14 @@ class LazyNode(object):
         return root
 
 
-class FSNode(Node):
+class FSNode(LazyNode):
     """A directory or file on the local filesystem.
     """
     @property
-    def path(self):
+    def fspath(self):
         """The path of a local filesystem node is a string.
         """
-        return os.path.join(super(FSNode, self).path)
+        return os.path.join(*self.path)
 
 
 class File(FSNode):
@@ -97,7 +106,7 @@ class File(FSNode):
     We break with nodethink, suggestions welcome.
     """
     def __iter__(self):
-        handle = open(self.path)
+        handle = open(self.fspath)
         for line in handle:
             yield line
         handle.close()
@@ -111,7 +120,7 @@ class Directory(FSNode):
     def _iterchildkeys(self):
         """The items in a directory are already unique
         """
-        for key in os.listdir(self.path):
+        for key in os.listdir(self.fspath):
             if self.blacklisted(key):
                 continue
             self._keys[key] = NotLoaded
@@ -121,9 +130,11 @@ class Directory(FSNode):
         return key in self.blacklist
 
     def _createchild(self, key):
-        path = os.path.join(self.path, key)
+        path = os.path.join(self.fspath, key)
         if os.path.isdir(path):
             val = Directory(key)
         elif os.path.isfile(path):
             val = File(key)
+        else:
+            raise
         return val

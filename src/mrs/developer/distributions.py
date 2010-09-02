@@ -1,5 +1,12 @@
+import os
+
+from mrs.developer.base import Cmd
+from mrs.developer.base import logger
+from mrs.developer.node import Directory
 from mrs.developer.node import File
+from mrs.developer.node import FSNode
 from mrs.developer.node import LazyNode
+
 
 
 class Distribution(LazyNode):
@@ -36,14 +43,14 @@ def distFromPath(path):
     return Bdist(path)
         
 
-class PyScript(LazyNode):
+class PyScript(FSNode):
     """A channel that returns distributions used by a python script
     """
     def _iterchildkeys(self):
         """Our keys are the paths to distributions used by our script
         """
         consume = False
-        for line in File(path):
+        for line in File(self.fspath):
             line = line.strip()
             if line.startswith('sys.path[0:0] = ['):
                 consume = True
@@ -52,12 +59,14 @@ class PyScript(LazyNode):
             elif not consume:
                 continue
             # The key is the full path to the distribution
-            key = line[2:-2]
+            key = line[1:-2]
             if not key.endswith('.egg'):
-                logger.warn("Ignoring yet unsupported distribution in '%s'.")
+                logger.warn("Ignoring yet unsupported distribution in '%s'." \
+                        % (key,))
                 continue
             elif not os.path.isdir(key):
-                logger.warn("Ignoring yet unsupported zipped bdist in '%s'.")
+                logger.warn("Ignoring yet unsupported zipped bdist in '%s'." \
+                        % (key,))
                 continue
             yield key
 
@@ -65,32 +74,34 @@ class PyScript(LazyNode):
         return distFromPath(path)
 
 
-class PyScriptDir(Node):
+class PyScriptDir(FSNode):
     """A channel for all distributions from python scripts in a file
     """
     def _iterchildkeys(self):
-        for item in Directory(self.path):
-            if os.path.isdir(item.path):
-                for key in PyScriptDir(item.path):
+        for item in Directory(self.fspath).values():
+            if os.path.isdir(item.fspath):
+                for key in PyScriptDir(item.fspath):
                     yield key
-            elif os.path.isfile(item.path):
-                for dist in PyScript(item.path):
+            elif os.path.isfile(item.fspath):
+                for dist in PyScript(item.fspath):
                     yield dist
+            else:
+                import ipdb;ipdb.set_trace()
 
 
-class UnionNode(Node):
+class UnionNode(LazyNode):
     """Returns the union of its backends
     """
 
 
 
-class Part(Node):
+class Part(LazyNode):
     """A part of a buildout, having scripts as children
     """
 
 
-class Buildout(Node):
-    """A buildout projecto
+class Buildout(FSNode):
+    """A buildout project
 
     Parts are children, the rest is attributes
     """
@@ -125,8 +136,8 @@ class List(Cmd):
     def __call__(self, pargs=None):
         """So far we just list all distributions used by the current env
         """
-        dists = []
-        return 
+        dists = [x for x in PyScriptDir(os.path.join(self.root, 'bin'))]
+        return dists
 
     def init_argparser(self, parser):
         """Add our arguments to a parser.

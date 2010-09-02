@@ -17,6 +17,8 @@ from mrs.developer.base import CmdWrapper
 from mrs.developer.base import check_call
 from mrs.developer.base import logger
 
+import mrs.developer.distributions
+
 DEFAULT_CFG_FILE = '.mrsd'
 
 
@@ -222,7 +224,7 @@ class HookCmd(Cmd):
             if name[0] == '.':
                 logger.debug("Ignoring %s." % (script,))
                 continue
-            # Will be either hookin or unhook
+            # Will be either hookin or hookout
             self._cmd(script)
 
 
@@ -254,7 +256,7 @@ if paths:
         content = f.read()
         f.close()
         if self.start_indicator in content:
-            self.cmds.unhook()
+            self.cmds.hookout()
             f = open(script, 'r')
             content = f.read()
             f.close()
@@ -275,10 +277,10 @@ if paths:
     _cmd = _hookin
 
 
-class Unhook(HookCmd):
+class Hookout(HookCmd):
     """Remove our hook from scripts.
     """
-    def _unhook(self, script):
+    def _hookout(self, script):
         """This command will be called by HookCmd.__call__
         """
         f = open(script, 'r')
@@ -292,9 +294,9 @@ class Unhook(HookCmd):
         f = open(script, 'w')
         f.write(content)
         f.close()
-        logger.info("Unhooked %s." % (script,))
+        logger.info("Hooked out: %s." % (script,))
 
-    _cmd = _unhook
+    _cmd = _hookout
 
 
 class Init(Cmd):
