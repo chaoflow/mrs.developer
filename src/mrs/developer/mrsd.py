@@ -22,73 +22,21 @@ import mrs.developer.distributions
 DEFAULT_CFG_FILE = '.mrsd'
 
 
-class Patch(Cmd):
-    """Patch management, list, generate and apply patches on bdist eggs.
+class Init(Cmd):
+    """Create a default configuration in the current directory.
+
+    This defines a mrsd root, commands in the subtree will find and use it.
     """
-    def _initialize(self):
-        # read a list of available patches
-        patches_dir = self.cfg['patches_dir'].setdefault('eggs-patches')
-        patches_dir = os.path.join(
-                self.root or os.curdir,
-                patches_dir,
-                )
-        for pkg in os.listdir(patches_dir):
-            self.patches[pkg] = []
-            pkg_patch_dir = os.path.join(patches_dir, pkg)
-            for patch in os.listdir(pkg_patch_dir):
-                patch = os.path.abspath(patch)
-                self.patches[pkg].append(patch)
-
-    def init_argparser(self, parser):
-        """Add our arguments to a parser
-        """
-        actions = parser.add_mutually_exclusive_group()
-        action.add_argument(
-                '--list',
-                dest='action',
-                action='store_const',
-                const=self.list,
-                help=self.list.__doc__,
-                default=True,
-                )
-        action.add_argument(
-                '--generate',
-                dest='action',
-                action='store_const',
-                const=self.generate,
-                help=self.list.__doc__,
-                default=True,
-                )
-        action.add_argument(
-                'eggspace',
-                nargs='*',
-                help='Eggspace to customize.',
-                )
-
-    def list(self, namespace):
-        """List patches for namespace.
-        """
-        return self.patches
-
-    def generate(self, namespace):
-        """Generate patches from customized bdist eggs.
-        """
-
-    def apply(self, namespace):
-        """Apply patches for namespace.
-        """
-
-    def __call__(self, pargs=None):
-#        for egg in eggspace if egg in self.patches:
-#            self._customize(egg)
-#            self._patch(egg, self.patches[egg.name])
-        pass
-
-    def _patch(self, egg, patches):
-        """Apply patches to egg
-        """
-        for patch in patches:
-            patch(egg)
+    def __call__(self, path=None, pargs=None):
+        cfg_file = os.path.abspath(DEFAULT_CFG_FILE)
+        reinit = os.path.isfile(cfg_file)
+        self.cmds.save_config(cfg_file)
+        if reinit:
+            logger.info(u"Reinitialized mrsd root at %s." % \
+                    (os.path.abspath(os.curdir)))
+        else:
+            logger.info(u"Initialized mrsd root at %s." % \
+                    (os.path.abspath(os.curdir)))
 
 
 class HookCmd(Cmd):
@@ -190,21 +138,73 @@ class Hookout(HookCmd):
     _cmd = _hookout
 
 
-class Init(Cmd):
-    """Create a default configuration in the current directory.
-
-    This defines a mrsd root, commands in the subtree will find and use it.
+class Patch(Cmd):
+    """Patch management, list, generate and apply patches on bdist eggs.
     """
-    def __call__(self, path=None, pargs=None):
-        cfg_file = os.path.abspath(DEFAULT_CFG_FILE)
-        reinit = os.path.isfile(cfg_file)
-        self.cmds.save_config(cfg_file)
-        if reinit:
-            logger.info(u"Reinitialized mrsd root at %s." % \
-                    (os.path.abspath(os.curdir)))
-        else:
-            logger.info(u"Initialized mrsd root at %s." % \
-                    (os.path.abspath(os.curdir)))
+    def _initialize(self):
+        # read a list of available patches
+        patches_dir = self.cfg['patches_dir'].setdefault('eggs-patches')
+        patches_dir = os.path.join(
+                self.root or os.curdir,
+                patches_dir,
+                )
+        for pkg in os.listdir(patches_dir):
+            self.patches[pkg] = []
+            pkg_patch_dir = os.path.join(patches_dir, pkg)
+            for patch in os.listdir(pkg_patch_dir):
+                patch = os.path.abspath(patch)
+                self.patches[pkg].append(patch)
+
+    def init_argparser(self, parser):
+        """Add our arguments to a parser
+        """
+        actions = parser.add_mutually_exclusive_group()
+        action.add_argument(
+                '--list',
+                dest='action',
+                action='store_const',
+                const=self.list,
+                help=self.list.__doc__,
+                default=True,
+                )
+        action.add_argument(
+                '--generate',
+                dest='action',
+                action='store_const',
+                const=self.generate,
+                help=self.list.__doc__,
+                default=True,
+                )
+        action.add_argument(
+                'eggspace',
+                nargs='*',
+                help='Eggspace to customize.',
+                )
+
+    def list(self, namespace):
+        """List patches for namespace.
+        """
+        return self.patches
+
+    def generate(self, namespace):
+        """Generate patches from customized bdist eggs.
+        """
+
+    def apply(self, namespace):
+        """Apply patches for namespace.
+        """
+
+    def __call__(self, pargs=None):
+#        for egg in eggspace if egg in self.patches:
+#            self._customize(egg)
+#            self._patch(egg, self.patches[egg.name])
+        pass
+
+    def _patch(self, egg, patches):
+        """Apply patches to egg
+        """
+        for patch in patches:
+            patch(egg)
 
 
 class Test(CmdWrapper):
