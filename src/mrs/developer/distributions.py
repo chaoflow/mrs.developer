@@ -124,28 +124,18 @@ class Buildout(FSNode):
 
 
 
-class DistributionCmd(Cmd):
-    """A command used to handle distributions
-    """
-    def _initialize(self):
-        """Initialization, for example self.cfg.setdefault(.., ..)
-        """
-        self.cfg.setdefault('scripts_dir', 'bin')
-        self.dists = ScriptDirectory(self.cfg['scripts_dir'])
-
-
 class List(Cmd):
     """List distributions, by default all distributions used by the current
     environment.
     """
-    def _initialize(self):
-        """Initialization, for example self.cfg.setdefault(.., ..)
-        """
-
     def __call__(self, pargs=None):
         """So far we just list all distributions used by the current env
         """
-        return [x for x in PyScriptDir(os.path.join(self.root, 'bin'))]
+        if self.root:
+            self.pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
+            return [x for x in self.pyscriptdir]
+        else:
+            logger.error("Not rooted, run 'mrsd init'.")
 
     def init_argparser(self, parser):
         """Add our arguments to a parser.
@@ -161,10 +151,6 @@ class Clone(Cmd):
 
         For now, just bdist support
     """
-    def _initialize(self):
-        """Initialization, for example self.cfg.setdefault(.., ..)
-        """
-
     def __call__(self, pargs=None):
         """Execute the command, will receive parser args from argparse, when
         run from cmdline.
@@ -173,5 +159,8 @@ class Clone(Cmd):
     def init_argparser(self, parser):
         """Add our arguments to a parser.
         """
-
-
+        parser.add_argument(
+                'dist',
+                #nargs='+',
+                help='Distribution to clone.',
+                )

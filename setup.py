@@ -50,14 +50,9 @@ setup(name='mrs.developer',
               'init = mrs.developer.mrsd:Init',
               'hookin = mrs.developer.mrsd:Hookin',
               'hookout = mrs.developer.mrsd:Hookout',
-              'list = mrs.developer.distributions:List',
               'test = mrs.developer.mrsd:Test',
-
-              'stock = mrs.developer.mrsd:Stock',
-              'customize = mrs.developer.mrsd:Customize',
-              'paths = mrs.developer.mrsd:Paths',
-              'develop = mrs.developer.develop:Develop',
-              'checkout = mrs.developer.develop:Checkout',
+              'clone = mrs.developer.distributions:Clone',
+              'list = mrs.developer.distributions:List',
           ]
       },
       )
