@@ -14,7 +14,9 @@ extension to buildout.
 
     [example]
     recipe = zc.recipe.egg
-    eggs = piratebay
+    eggs =
+        mrs.developer
+        piratebay
     interpreter = example-py
 
 
@@ -26,7 +28,7 @@ Hookin will remove old hooks and recreate them
 
 .. code-block:: console
 
-    % mrsd hookin
+    % ./bin/mrsd hookin
     INFO:mrsd:Hooked out: /.../bin/example-py.
     INFO:mrsd:Hooked into /.../bin/example-py.
 
@@ -35,8 +37,11 @@ Hookout will remove the hooks from all scripts
 
 .. code-block:: console
 
-    % mrsd hookout
+    % ./bin/mrsd hookout
     INFO:mrsd:Hooked out: /.../bin/example-py.
+
+    % ./bin/mrsd hookin
+    INFO:mrsd:Hooked into /.../bin/example-py.
 
 .. todo:: unhook as an alias for hookout
 
@@ -74,7 +79,7 @@ cloned already:
 
 .. code-block:: console
 
-    % mrsd clone eggs/piratebay-0.3.1-py2.6.egg 
+    % ./bin/mrsd clone eggs/piratebay-0.3.1-py2.6.egg 
     Initialized empty Git repository in /.../eggs-mrsd/piratebay-0.3.1-py2.6.egg/.git/
     [master (root-commit) ...] initial from: /.../eggs/piratebay-0.3.1-py2.6.egg
      ... files changed, ... insertions(+), 0 deletions(-)...
@@ -83,11 +88,22 @@ List all cloned distributions:
 
 .. code-block:: console
 
+<<<<<<< Updated upstream
     % mrsd list cloned
+=======
+    % ./bin/mrsd list
+>>>>>>> Stashed changes
     [
         "/.../eggs/distribute-0.6.14-py2.6.egg",
         "/.../eggs/zc.buildout-1.5.1-py2.6.egg",
-        "/.../eggs/piratebay-0.3.1-py2.6.egg"
+        "/.../eggs/piratebay-0.3.1-py2.6.egg",
+        "/.../eggs/zope.location-3.9.0-py2.6.egg",
+        "/.../eggs/odict-1.3.2-py2.6.egg",
+        "/.../eggs/zope.proxy-3.6.1-py2.6...egg",
+        "/.../eggs/zope.component-3.9.5-py2.6.egg",
+        "/.../eggs/zope.schema-3.6.4-py2.6.egg",
+        "/.../eggs/zope.interface-3.6.1-py2.6-...egg",
+        "/.../eggs/zope.event-3.5.0_1-py2.6.egg"
     ]
 
 
@@ -114,10 +130,14 @@ git repository with an inital commit, tagged initial, referencing the origin.
 
 In order to actually use your distribution for newly started scripts, it needs
 to be activated
+
+.. code-block:: console
+
+    % ./bin/example-py -c 'import piratebay; print piratebay.__file__'
+    .../eggs-mrsd/piratebay-0.3.1-py2.6.egg/piratebay/__init__.pyc
+    
+
 ::
-
-    % mrsd run py -c 'import zodict; print zodict.__file'
-
     % mrsd activate zodict
 
     % mrsd run py -c 'import zodict; print zodict.__file'

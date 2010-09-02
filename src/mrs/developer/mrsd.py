@@ -81,7 +81,11 @@ except ImportError:
 from subprocess import Popen, PIPE
 
 paths = Popen(
+<<<<<<< Updated upstream
        ["mrsd", "list", "cloned"],
+=======
+       ["mrsd", "list"],
+>>>>>>> Stashed changes
        stdout=PIPE,
        ).communicate()[0]
 if paths:
