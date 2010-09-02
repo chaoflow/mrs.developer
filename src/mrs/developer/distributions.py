@@ -1,9 +1,9 @@
-from mrs.developer.node import 
+from mrs.developer.node import File
 
-class Distribution(object):
+
+class Distribution(Node):
     """A distribution
     """
-    url = None
     
 
 class SDist(Distribution):
@@ -16,23 +16,33 @@ class BDist(Distribution):
     """
 
 
-class Channel(object):
-    """A channel for something
-    """
-    def __init__(self, name, parent=None):
-        self.__name__ = name
-        self.__parent__ = parent
+def distFromPath(path):
+    """Create distribution object living at path in the filesystem
 
+    Path can be
+    - a zipped file ending in .egg (zipped binary distribution)
+    - a directory ending in .egg (unzipped binary distribution)
+    - unspported
+    """
+    if not os.path.isdir(path):
+        msg = 'No distributions in singular files yet: %s.' % (path,)
+        logger.error(msg)
+        raise RuntimeError(msg)
+    if not path.endswith('.egg'):
+        msg = 'Only bdists ending in .egg so far: %s.' % (path,)
+        logger.error(msg)
+        raise RuntimeError(msg)
+    return Bdist(path)
+        
 
 class PyScript(Node):
     """A channel that returns distributions used by a python script
     """
-    def _load_keys(self):
-        """Our keys are the paths to distributions used by the script our name
-        points to.
+    def _iterchildkeys(self):
+        """Our keys are the paths to distributions used by our script
         """
         consume = False
-        for line in fileiter(self.__name__):
+        for line in File(path):
             line = line.strip()
             if line.startswith('sys.path[0:0] = ['):
                 consume = True
@@ -40,28 +50,49 @@ class PyScript(Node):
                 break
             elif not consume:
                 continue
+            # The key is the full path to the distribution
             key = line[2:-2]
-            try:
-                self._keys[key]
-            except KeyError:
-                self._keys[key] = None
+            if not key.endswith('.egg'):
+                logger.warn("Ignoring yet unsupported distribution in '%s'.")
+                continue
+            elif not os.path.isdir(key):
+                logger.warn("Ignoring yet unsupported zipped bdist in '%s'.")
+                continue
+            yield key
 
-    def __getitem__(self, key):
-        """Return channel/distribution for key
+    def _createchild(self, key):
+        return distFromPath(key)
 
-        A key can be
-        - a string ending in .egg, path to a bdist
-        - path to a directory
 
-        XXX: This does not belong into PyScript
-        """
-            
-            
-class Buildout(Node):
-    """A channel that provides access to a buildout project.
+class UnionNode(Node):
+    """Returns the union of its backends
     """
-    def 
-            
+
+
+class PyScriptDir(Node):
+    """A channel for all distributions from python scripts in a file
+    """
+    def _iterchildkeys(self):
+        for item in Directory(self.path):
+            if os.path.isdir(item.path):
+                for key in PyScriptDir(item.path):
+                    yield key
+            elif os.path.isfile(item.path):
+                for dist in PyScript(item.path):
+                    yield dist
+
+
+class Buildout(Node):
+    """A buildout projecto
+
+    Parts are children, the rest is attributes
+    """
+    def _load_keys(self):
+        """load binary and source distributions used by our buildout
+        """ 
+
+
+
 
 class DistributionCmd(Cmd):
     """A command used to handle distributions

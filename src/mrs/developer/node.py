@@ -2,24 +2,61 @@
 
 Everybody should once write a node from scratch...
 """
-
+from odict.pyodict import nil
 from zope.location import locate
 from zope.location import LocationIterator
 
-class Node(object):
+
+class NotLoaded(object):
+    """This is used to enable None as a value
+    """
+
+class LazyNode(object):
     """Stuff we expect from our base of all bases
     """
     def __init__(self, name=None):
         self.__name__ = __name__
         self._keys = None
 
+    def __getitem__(self, key):
+        try:
+            val = self._keys[key]
+        except TypeError:
+            # this initializes
+            iter(self)
+        else:
+            if val is NotLoaded:
+                val = self._createchild(key)
+                val.__parent__ = self
+                self._keys[key] = val
+            return val
+
     def __iter__(self):
+        """wrt to ldap and secondary keys iterchildkeys should return a tuple
+        (key, prelim_data) where we could do key postprocessing and use
+        prelim_data to create stubs of NotLoaded with secondary key
+        """
         try:
             return self._keys.__iter__()
         except AttributeError:
             self._keys = odict()
-            self._load_keys()
-            return self._keys.__iter__()
+            return self._iterchildkeys()
+
+    def _iterchildkeys(self):
+        """Iterate over the child keys.
+        
+        You have to at least ``self._keys[key] = NotLoaded``.
+        
+        (see also ``__iter__`` and ``__getitem__``).
+        """
+        raise NotImplemented
+
+    def _createchild(self, key):
+        """factor a child for key
+
+        (see also ``__getitem__``)
+        """
+        raise NotImplemented
 
     def keys(self):
         return [x for x in self.__iter__()]
@@ -41,17 +78,19 @@ class Node(object):
 
 
 class FSNode(Node):
-    """A directory or file on the local filesystem
+    """A directory or file on the local filesystem.
     """
     @property
     def path(self):
-        """The path of a local filesystem node is a string
+        """The path of a local filesystem node is a string.
         """
         return os.path.join(super(FSNode, self).path)
 
 
 class File(FSNode):
-    """A file in the filesystem
+    """A file in the filesystem.
+
+    We break with nodethink, suggestions welcome.
     """
     def __iter__(self):
         handle = open(self.path)
@@ -65,31 +104,22 @@ class Directory(FSNode):
     """
     blacklist = ('.', '..')
 
-    def _load_keys(self):
+    def _iterchildkeys(self):
         """The items in a directory are already unique
         """
         for key in os.listdir(self.path):
             if self.blacklisted(key):
                 continue
-            # XXX: _nil? so we can have a "child" with value None
-            # keep in mind that .attrs is also a Node
-            self.keys[key] = None
+            self._keys[key] = NotLoaded
+            yield key
 
     def blacklisted(self, key):
         return key in self.blacklist
 
-    def __getitem__(self, key):
-        try:
-            val = self._keys[key]
-        except TypeError:
-            iter(self)
-        except KeyError:
-            pass
-
+    def _createchild(self, key):
         path = os.path.join(self.path, key)
         if os.path.isdir(path):
             val = Directory(key)
         elif os.path.isfile(path):
             val = File(key)
-        val.__parent__ = self
-        return self._keys[key] = val
+        return val
