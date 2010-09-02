@@ -30,7 +30,7 @@ Hookin will remove old hooks and recreate them
 
     % ./bin/mrsd hookin
     INFO:mrsd:Hooked out: /.../bin/example-py.
-    INFO:mrsd:Hooked into /.../bin/example-py.
+    INFO:mrsd:Hooked in: /.../bin/example-py.
 
 
 Hookout will remove the hooks from all scripts
@@ -41,7 +41,7 @@ Hookout will remove the hooks from all scripts
     INFO:mrsd:Hooked out: /.../bin/example-py.
 
     % ./bin/mrsd hookin
-    INFO:mrsd:Hooked into /.../bin/example-py.
+    INFO:mrsd:Hooked in: /.../bin/example-py.
 
 .. todo:: unhook as an alias for hookout
 
@@ -127,7 +127,7 @@ git repository with an inital commit, tagged initial, referencing the origin.
 In order to actually use your distribution for newly started scripts, it needs
 to be activated
 
-.. code-block:: console
+#.. code-block:: console
 
     % ./bin/example-py -c 'import piratebay; print piratebay.__file__'
     .../eggs-mrsd/piratebay-0.3.1-py2.6.egg/piratebay/__init__.pyc
