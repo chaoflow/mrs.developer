@@ -1,5 +1,6 @@
-Extensions are loaded before eggs. You need once without loading the extension
-to register the dev egg and then run buildout normally:
+Extensions are loaded before eggs. You need to run buildout once without
+loading the extension to generate egg-info for the develop egg and then run
+buildout normally:
 
     % ./bin/buildout -c init.cfg
     ...
