@@ -214,6 +214,15 @@ class Test(CmdWrapper):
     cmdline = ["./bin/test"]
 
 
+class Run(CmdWrapper):
+    """Run scripts from ``bin/`` from anywhere in your project.
+    """
+    def _cmdline(self, args):
+        cmd = args.pop(0)
+        cmd = os.path.join('.', 'bin/', cmd)
+        return [cmd] + args
+
+
 class CmdSet(object):
     """The mrsd command set.
     """

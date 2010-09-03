@@ -69,7 +69,10 @@ class CmdWrapper(Cmd):
         # we ignore pargs
         if args is None:
             args = sys.argv[2:]
-        call(self.cmdline + args, cwd=self.root)
+        call(self._cmdline(args), cwd=self.root)
+
+    def _cmdline(self, args):
+        return self.cmdline + args
 
     def init_argparser(self, parser):
         """Add our arguments to a parser

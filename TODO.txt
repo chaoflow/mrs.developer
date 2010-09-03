@@ -25,7 +25,6 @@ Additional commands
 -------------------
 
 - see .. todo:: in distributions.txt
-- mrsd run to run scripts in buildout:bin from anywhere in the subtree
 - mrsd github for issue management and commit commenting and ...
 
 Testing
@@ -37,3 +36,8 @@ Testing
     - make mrsd available in PATH of shell (URGENT)
     - make grep work
 - start of command: '[%#$] ' and empty line before
+
+Cmdline framework
+-----------------
+
+- nodification
