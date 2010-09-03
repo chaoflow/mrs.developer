@@ -85,7 +85,7 @@ mrsdpaths = Popen(
        stdout=PIPE,
        ).communicate()[0]
 if mrsdpaths:
-    sys.path[0:0] = json.loads(mrsdpaths)
+    sys.path[0:0] = json.loads(mrsdpaths).values()
 %s"""
 
     def _hookin(self, script):

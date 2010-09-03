@@ -26,6 +26,12 @@ class BDist(Distribution):
     """A binary distribution
     """
 
+class BDistDirectory(Directory):
+    """A directory containing binary distributions
+    """
+    def _createchild(self, key):
+        return BDist(key)
+
 
 def distFromPath(path):
     """Create distribution object living at path in the filesystem
@@ -43,7 +49,10 @@ def distFromPath(path):
         msg = 'Only bdists ending in .egg so far: %s.' % (path,)
         logger.error(msg)
         raise RuntimeError(msg)
-    return BDist(path)
+    head, tail = os.path.split(path)
+    parent = BDistDirectory(head)
+    dist = parent[tail]
+    return dist
 
 
 class PyScript(FSNode):
@@ -81,6 +90,9 @@ class PyScript(FSNode):
 class PyScriptDir(FSNode):
     """A channel for all distributions from python scripts in a file
     """
+    # We are not real parents, the folders where the dists really live are
+    adopting = False
+
     def _iterchildkeys(self):
         self.seen = {}
         for item in Directory(self.abspath).values():
@@ -158,7 +170,7 @@ class List(Cmd):
                 return [x.abspath for x in cloned.values()]
 
         pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
-        return [x for x in pyscriptdir]
+        return dict((x.__name__, x.abspath) for x in pyscriptdir.values())
 
 
 def copy(dist, dir_):

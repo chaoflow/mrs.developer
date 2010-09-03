@@ -15,6 +15,9 @@ class NotLoaded(object):
 class LazyNode(object):
     """Stuff we expect from our base of all bases
     """
+    # Are we adopting our childs or just passing them through
+    adopting = True
+
     def __init__(self, name=None):
         self.__name__ = name
         self._keys = None
@@ -28,7 +31,8 @@ class LazyNode(object):
             val = self._keys[key]
         if val is NotLoaded:
             val = self._createchild(key)
-            val.__parent__ = self
+            if self.adopting:
+                val.__parent__ = self
             self._keys[key] = val
         return val
 
@@ -67,6 +71,9 @@ class LazyNode(object):
         (see also ``__getitem__``)
         """
         raise NotImplemented
+
+    def items(self):
+        return [(k, self.__getitem__(k)) for k in self.__iter__()]
 
     def keys(self):
         return [x for x in self.__iter__()]
