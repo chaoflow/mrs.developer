@@ -203,6 +203,7 @@ they differ from the stock versions.
 
 In order to make changes to a stock distribution, you clone it. Calling ``mrsd
 clone`` without arguments will list all distributions available for cloning:
+
 .. code-block:: console
 
     % ./bin/mrsd clone
@@ -216,6 +217,7 @@ as a git repository with an inital commit, tagged initial, referencing the
 origin.  Sorry, here we only support git for now, feel free to provide
 configurable support for some other DVCS (see CONTRIBUTE.txt). For a full
 documentation of ``mrsd clone`` see clone.txt).
+
 .. code-block:: console
 
     % ./bin/mrsd clone odict
@@ -231,12 +233,14 @@ distributions
 
 ``mrsd list cloned`` will list it now, our hook (see above) will use this for
 injecting it into the correponding scripts' sys.path:
+
 .. code-block:: console
 
     % mrsd list cloned
 
 By default the newly clone distribution will be activated for all scripts, this
 might change in the future
+
 .. code-block:: console
 
     % ./bin/example-py -c 'import zodict; print zodict.__file'
@@ -250,12 +254,13 @@ Let's make some changes and commit some of them:
     % git log
     % git status --procelain
 
-Persistent your changes for deployment
+Persist your changes for deployment
 #.. code-block:: console
 
     % mrsd patch
-    % mrsd patch generate
-    % mrsd patch
+    % mrsd patch --list
+    % mrsd patch --generate
+    % mrsd patch --apply
 
     % rm eggs-mrsd
 
@@ -267,6 +272,11 @@ Persistent your changes for deployment
 
 
 
+Generate patches
+
+    % mrsd patch --apply
+    % mrsd patch --generate
+    % mrsd patch --generate
 
 
 

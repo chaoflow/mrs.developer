@@ -146,10 +146,11 @@ class List(Cmd):
             logger.error("Not rooted, run 'mrsd init'.")
             return
         if channels is None:
-            channels = pargs.channel
-            if not channels:
-                pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
-                return [x for x in pyscriptdir]
+            if pargs is not None:
+                channels = pargs.channel
+        if channels is None:
+            pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
+            return [x for x in pyscriptdir]
         if type(channels) not in (tuple, list):
             channels = (channels,)
         for channel in channels:
@@ -259,34 +260,34 @@ class Patch(Cmd):
                 dest='action',
                 action='store_const',
                 const=self.generate,
-                help=self.list.__doc__,
+                help=self.generate.__doc__,
                 )
         actions.add_argument(
                 '--apply',
                 dest='action',
                 action='store_const',
                 const=self.apply,
-                help=self.list.__doc__,
+                help=self.apply.__doc__,
                 )
+        parser.set_defaults(action=self.list)
         parser.add_argument(
                 'dist',
                 nargs='*',
                 help='Eggspace to customize.',
                 )
 
-    def list(self, namespace):
-        """List patches for namespace.
+    def list(self):
+        """List patches.
         """
         return self.patches
 
     def generate(self, namespace):
-        """Generate patches from customized bdist eggs.
+        """Generate patches from customized bdists.
         """
         check_call(['git', 'add', '.'], cwd=target.abspath)
 
-
-    def apply(self, namespace):
-        """Apply patches for namespace.
+    def apply(self):
+        """Apply patches.
         """
 
     def __call__(self, pargs=None):
