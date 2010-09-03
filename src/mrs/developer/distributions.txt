@@ -90,7 +90,28 @@ A hooked in mrsd injects sys.paths into scripts:
 
 .. code-block:: console
 
-    % grep '(mrsdpaths)' ./bin/example-py
+    % cat ./bin/example-py
+    ...
+        '/.../eggs/zope.event-3.5.0_1-py2.6.egg',
+        ]
+    
+    ...mrs.developer: inject our paths upfront
+    try:
+        import json
+    except ImportError:
+        import simplejson as json
+    from subprocess import Popen, PIPE
+    
+    mrsdpaths = Popen(
+           ["mrsd", "list", "cloned"],
+           stdout=PIPE,
+           ).communicate()[0]
+    if mrsdpaths:
+        sys.path[0:0] = json.loads(mrsdpaths)
+    ...mrs.developer: end.
+    
+    _interactive = True
+    ...
 
 .. todo:: interact(locals()) for shelltests
 
@@ -101,12 +122,40 @@ A hooked in mrsd injects sys.paths into scripts:
     % ./bin/mrsd hookout
     INFO:mrsd:Hooked out: /.../bin/example-py.
 
-    % grep '(mrsdpaths)' ./bin/example-py
+    % cat ./bin/example-py
+    ...
+        '/.../eggs/zope.event-3.5.0_1-py2.6.egg',
+        ]
+    
+    _interactive = True
+    ...
 
     % ./bin/mrsd hookin
     INFO:mrsd:Hooked in: /.../bin/example-py.
 
-    % grep '(mrsdpaths)' ./bin/example-py
+    % cat ./bin/example-py
+    ...
+        '/.../eggs/zope.event-3.5.0_1-py2.6.egg',
+        ]
+    
+    ...mrs.developer: inject our paths upfront
+    try:
+        import json
+    except ImportError:
+        import simplejson as json
+    from subprocess import Popen, PIPE
+    
+    mrsdpaths = Popen(
+           ["mrsd", "list", "cloned"],
+           stdout=PIPE,
+           ).communicate()[0]
+    if mrsdpaths:
+        sys.path[0:0] = json.loads(mrsdpaths)
+    ...mrs.developer: end.
+    
+    _interactive = True
+    ...
+    
 
 .. todo:: Use .installed.cfg for finding scripts to hook into
 
@@ -157,6 +206,7 @@ cloning are:
     clone a distribution into your mrsd environment
 
 List all distributions, stock and cloned:
+
 .. code-block:: console
 
     % ./bin/mrsd list
