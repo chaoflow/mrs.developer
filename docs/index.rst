@@ -9,7 +9,9 @@ Welcome to mrs.developer's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
+
+    distributions
 
 Indices and tables
 ==================

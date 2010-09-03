@@ -25,25 +25,61 @@ assume these are all scripts in ``bin``, that use sys.path[0:0] injection and
 are not blacklisted. Blacklisted is for example ``bin/buildout``.
 
 Buildout was already run for us and mrsd initialized and hooked in.
+
 .. code-block:: console
 
     % ls -1a
+    .
+    ..
+    .installed.cfg
+    .mrsd
+    bin
+    bootstrap.py
+    buildout.cfg
+    develop-eggs
+    eggs
+    eggs-patches
+    init.cfg
+    mrs.developer
+    parts
 
 The full persistent configuration is in .mrsd:
+
 .. code-block:: console
 
     % cat .mrsd
+    {
+        "patches_dir": "eggs-patches",
+        "scripts_dir": "bin"
+    }
 
 Mrsd hooked into the python scripts as described above:
+
 .. code-block:: console
 
     % cat bin/example-py
+    ...mrs.developer: inject our paths upfront
+    try:
+        import json
+    except ImportError:
+        import simplejson as json
+    from subprocess import Popen, PIPE
+    
+    mrsdpaths = Popen(
+           ["mrsd", "list", "cloned"],
+           stdout=PIPE,
+           ).communicate()[0]
+    if mrsdpaths:
+        sys.path[0:0] = json.loads(mrsdpaths)
+    ...mrs.developer: end.
+    ...
 
 .. todo:: make mrsd available in the path of the shell
 
 .. todo:: ``mrsd github``
 
 Calling ``mrsd hookin`` will remove old hooks and recreate them
+
 .. code-block:: console
 
     % ./bin/mrsd hookin
@@ -51,6 +87,7 @@ Calling ``mrsd hookin`` will remove old hooks and recreate them
     INFO:mrsd:Hooked in: /.../bin/example-py.
 
 A hooked in mrsd injects sys.paths into scripts:
+
 .. code-block:: console
 
     % grep '(mrsdpaths)' ./bin/example-py
@@ -58,6 +95,7 @@ A hooked in mrsd injects sys.paths into scripts:
 .. todo:: interact(locals()) for shelltests
 
 ``mrsd hookout`` will remove the hooks from all scripts:
+
 .. code-block:: console
 
     % ./bin/mrsd hookout
