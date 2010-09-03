@@ -173,11 +173,11 @@ class List(Cmd):
         return dict((x.__name__, x.abspath) for x in pyscriptdir.values())
 
 
-def copy(dist, dir_):
+def copy(dist, targetdir):
     """copies a binary distribution to a directory
     """
     head, tail = os.path.split(dist.abspath)
-    target = BDist(os.path.join(dir_.abspath, tail))
+    target = BDist(os.path.join(targetdir.abspath, tail))
     shutil.copytree(
             dist.abspath,
             target.abspath,
@@ -221,13 +221,24 @@ class Clone(Cmd):
         for dist in dists:
             self._clone(dist)
 
-    def _clone(self, dist):
-        # find the distribution
-        pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
-        if not os.path.isabs(dist):
-            source = pyscriptdir[os.path.abspath(dist)]
-        else:
-            source = pyscriptdir[dist]
+    def _clone(self, name):
+        """clone a distribution
+
+        name can be:
+        - odict-1.3.2-py2.6.egg
+        - /home/cfl/.cache/buildout/eggs/odict-1.3.2-py2.6.egg
+        - relative path
+        """
+        dists = self.cmds.list()
+        try:
+            abspath = dists[name]
+        except KeyError:
+            # not a name of distribution, might relative or absolute path
+            if os.path.isabs(name):
+                abspath = name
+            else:
+                abspath = os.path.abspath(name)
+        source = distFromPath(abspath)
         target = copy(source, Directory(os.path.join(self.root, 'eggs-mrsd')))
         # initialize as a git repo and create initial commit
         check_call(['git', 'init'], cwd=target.abspath)
