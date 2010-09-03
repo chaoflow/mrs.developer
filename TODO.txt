@@ -15,3 +15,25 @@ Todo
 
 - nodify the mrsd.cmdset, they take and return nodes, mrsd serializes nodes
   into json
+
+- find-links for cloned distributions?
+
+- consistent naming of doc files .txt vs .rst, all our txt are in rst format.
+  it is kind of common to use .txt even if it is in rst format.
+
+Additional commands
+-------------------
+
+- see .. todo:: in distributions.txt
+- mrsd run to run scripts in buildout:bin from anywhere in the subtree
+- mrsd github for issue management and commit commenting and ...
+
+Testing
+-------
+
+- make coverage report work with being called from shell commands
+- % interact(locals())
+- run shell as a daemon reusing it for each test, enables ``cd``
+    - make mrsd available in PATH of shell (URGENT)
+    - make grep work
+- start of command: '[%#$] ' and empty line before
