@@ -142,15 +142,14 @@ class List(Cmd):
     def __call__(self, channels=None, pargs=None):
         """So far we just list all distributions used by the current env
         """
+        if not os.path.isdir(os.path.join(self.root, 'eggs-mrsd')):
+            os.mkdir(os.path.join(self.root, 'eggs-mrsd'))
         if not self.root:
             logger.error("Not rooted, run 'mrsd init'.")
             return
         if channels is None:
             if pargs is not None:
                 channels = pargs.channel
-        if channels is None:
-            pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
-            return [x for x in pyscriptdir]
         if type(channels) not in (tuple, list):
             channels = (channels,)
         for channel in channels:
@@ -158,6 +157,7 @@ class List(Cmd):
                 cloned = Directory(os.path.join(self.root, 'eggs-mrsd'))
                 return [x.abspath for x in cloned.values()]
 
+        pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
         return [x for x in pyscriptdir]
 
 
