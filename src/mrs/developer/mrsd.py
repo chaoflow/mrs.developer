@@ -241,13 +241,24 @@ class CmdSet(object):
 
     def __init__(self):
         self.cfg = dict()
-        self.cfg_file = None
+        self.cfg_file = self._find_cfg()
         self.cmds = odict()
         self.aliases = {}
         for ep in iter_entry_points(self.entry_point_keys['commands']):
             self.cmds[ep.name] = ep.load()(ep.name, self)
         for ep in iter_entry_points(self.entry_point_keys['aliases']):
             self.aliases[ep.name] = ep.load()()
+
+    def _find_cfg(self, cfg_file=os.path.abspath(DEFAULT_CFG_FILE)):
+        if os.path.isfile(cfg_file):
+            return cfg_file
+        # check in parent dir
+        head, tail = os.path.split(cfg_file)
+        pardir = os.path.dirname(head)
+        if head == pardir:
+            logger.info('Running rootless, ``mrsd init`` would define a root.')
+            return None
+        return self._find_cfg(os.path.join(pardir, tail))
 
     def __getattr__(self, name):
         try:
@@ -266,26 +277,17 @@ class CmdSet(object):
     def iteritems(self):
         return self.cmds.iteritems()
 
-    def load_config(self, cfg_file=DEFAULT_CFG_FILE):
+    def load_config(self):
         """Load config from curdir or parents
         """
-        cfg_file = os.path.abspath(cfg_file)
-        try:
-            logger.debug("Trying to load config from %s." % (cfg_file,))
-            f = open(cfg_file)
-        except IOError:
-            # check in parent dir
-            head, tail = os.path.split(cfg_file)
-            pardir = os.path.dirname(head)
-            if head == pardir:
-                raise RuntimeError("Found no configuration to load.")
-            cfg_file = os.path.join(pardir, tail)
-            self.load_config(cfg_file)
-        else:
-            logger.debug("Loaded config from %s." % (cfg_file,))
-            self.cfg = json.load(f)
-            self.cfg_file = cfg_file
-            f.close()
+        if self.cfg_file is None:
+            logger.debug("No config to load, we are rootless.")
+            return
+        logger.debug("Trying to load config from %s." % (self.cfg_file,))
+        f = open(self.cfg_file)
+        self.cfg = json.load(f)
+        logger.debug("Loaded config from %s." % (self.cfg_file,))
+        f.close()
 
     def save_config(self, cfg_file=None):
         cfg_file = cfg_file or self.cfg_file
