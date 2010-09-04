@@ -3,6 +3,7 @@ import shutil
 import subprocess
 
 from subprocess import check_call
+from subprocess import Popen, PIPE
 
 from mrs.developer.base import Cmd
 from mrs.developer.base import logger
@@ -309,6 +310,24 @@ class Patch(Cmd):
             if not os.path.isdir(targetdir):
                 os.mkdir(targetdir)
             # format-patch there
+            if Popen(['git', 'status', '--porcelain'],
+                    stdout=PIPE, cwd=abspath).communicate()[0]:
+                logger.warn('Ignoring egg with uncommitted changes: %s.' %
+                        (abspath,))
+                continue
+            tmp = Popen(['git', 'branch', '--no-color'], cwd=abspath,
+                    stdout=PIPE).communicate()[0].split('\n')
+            currentbranch = None
+            for x in tmp:
+                if x.startswith('*'):
+                    currentbranch = x.split()[1]
+                    break
+            else:
+                raise CouldNotDetectCurrentBranch
+            if currentbranch == '__mrsd_patched__': 
+                logger.error('Ignoring egg on __mrsd_patched__ branch: %s.' %
+                        (abspath,))
+                return
             check_call(['git', 'format-patch', '-o', targetdir, 'initial..HEAD'], cwd=abspath)
 
     def apply(self):
