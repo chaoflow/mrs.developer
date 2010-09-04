@@ -11,10 +11,9 @@
 /docs/_build/pylint_mrsd.dot
 /docs/_build/pylint_mrsd_external.dot
 /docs/_build/pylint_mrsd_internal.dot
-/eggs-customized/
 /eggs-mrsd/
+/eggs-patches/
 /eggs/
-    
 /include/
 /lib/
 /parts/
