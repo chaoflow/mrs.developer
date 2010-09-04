@@ -260,13 +260,6 @@ class Patch(Cmd):
                 )
         if not os.path.isdir(patches_dir):
             os.mkdir(patches_dir)
-        self.patches = dict()
-        for pkg in os.listdir(patches_dir):
-            self.patches[pkg] = []
-            pkg_patch_dir = os.path.join(patches_dir, pkg)
-            for patch in os.listdir(pkg_patch_dir):
-                patch = os.path.abspath(patch)
-                self.patches[pkg].append(patch)
 
     def init_argparser(self, parser):
         """Add our arguments to a parser
@@ -303,7 +296,7 @@ class Patch(Cmd):
     def list(self):
         """List patches.
         """
-        return self.patches
+        return [x for x in Directory(self.cfg['patches_dir'])]
 
     def generate(self):
         """Generate patches from customized bdists.
@@ -330,6 +323,13 @@ class Patch(Cmd):
         clone base version
         apply patches
         """
+        for patchdir in Directory(self.cfg['patches_dir']).values():
+            try:
+                self.cmds.clone(patchdir.__name__)
+            except OSError:
+                pass
+            check_call(['git', 'am', patchdir.abspath],
+                    cwd=os.path.join(self.root, 'eggs-mrsd'))
 
     def __call__(self, pargs=None):
-        pargs.action()
+        return pargs.action()
