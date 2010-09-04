@@ -41,5 +41,5 @@ def load(buildout=None):
 
 
 def unload(buildout=None):
-    return UnloadExtension()()
+    return UnloadExtension(buildout)()
 
