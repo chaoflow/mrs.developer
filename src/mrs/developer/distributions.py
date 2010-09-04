@@ -260,6 +260,7 @@ class Patch(Cmd):
                 )
         if not os.path.isdir(patches_dir):
             os.mkdir(patches_dir)
+        self.patches = dict()
         for pkg in os.listdir(patches_dir):
             self.patches[pkg] = []
             pkg_patch_dir = os.path.join(patches_dir, pkg)
@@ -304,23 +305,31 @@ class Patch(Cmd):
         """
         return self.patches
 
-    def generate(self, namespace):
+    def generate(self):
         """Generate patches from customized bdists.
+
+        Limitations for now: one patchset per bdist, only apply to bdist with
+        the same name.
         """
-        check_call(['git', 'add', '.'], cwd=target.abspath)
+        for name, abspath in self.cmds.list('cloned').items():
+            # create dir for bdist in patches if not exists
+            patches_dir = self.cfg['patches_dir']
+            if not os.path.isabs(patches_dir):
+                patches_dir = os.path.join(self.root, patches_dir)
+            targetdir = os.path.join(patches_dir, name)
+            if not os.path.isdir(patches_dir):
+                os.mkdir(patches_dir)
+            if not os.path.isdir(targetdir):
+                os.mkdir(targetdir)
+            # format-patch there
+            check_call(['git', 'format-patch', '-o', targetdir, 'initial..HEAD'], cwd=abspath)
 
     def apply(self):
         """Apply patches.
+
+        clone base version
+        apply patches
         """
 
     def __call__(self, pargs=None):
-#        for egg in eggspace if egg in self.patches:
-#            self._customize(egg)
-#            self._patch(egg, self.patches[egg.name])
-        pass
-
-    def _patch(self, egg, patches):
-        """Apply patches to egg
-        """
-        for patch in patches:
-            patch(egg)
+        pargs.action()
