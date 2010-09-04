@@ -167,7 +167,7 @@ class List(Cmd):
         for channel in channels:
             if channel == "cloned":
                 cloned = Directory(os.path.join(self.root, 'eggs-mrsd'))
-                return [x.abspath for x in cloned.values()]
+                return dict((x.__name__, x.abspath) for x in cloned.values())
 
         pyscriptdir = PyScriptDir(os.path.join(self.root, 'bin'))
         return dict((x.__name__, x.abspath) for x in pyscriptdir.values())
