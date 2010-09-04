@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 
 from subprocess import check_call
 
@@ -252,14 +253,7 @@ class Patch(Cmd):
     """Patch management, list, generate and apply patches on bdist eggs.
     """
     def _initialize(self):
-        # read a list of available patches
-        patches_dir = self.cfg.setdefault('patches_dir', 'eggs-patches')
-        patches_dir = os.path.join(
-                self.root or os.curdir,
-                patches_dir,
-                )
-        if not os.path.isdir(patches_dir):
-            os.mkdir(patches_dir)
+        self.cfg.setdefault('patches_dir', 'eggs-patches')
 
     def init_argparser(self, parser):
         """Add our arguments to a parser
@@ -296,7 +290,7 @@ class Patch(Cmd):
     def list(self):
         """List patches.
         """
-        return [x for x in Directory(self.cfg['patches_dir'])]
+        return [x for x in Directory(self.patches_dir)]
 
     def generate(self):
         """Generate patches from customized bdists.
@@ -323,13 +317,31 @@ class Patch(Cmd):
         clone base version
         apply patches
         """
-        for patchdir in Directory(self.cfg['patches_dir']).values():
+        for patchdir in Directory(self.patches_dir).values():
             try:
                 self.cmds.clone(patchdir.__name__)
             except OSError:
                 pass
-            check_call(['git', 'am', patchdir.abspath],
-                    cwd=os.path.join(self.root, 'eggs-mrsd'))
+            eggdir = os.path.join(self.root, 'eggs-mrsd', patchdir.__name__)
+            try:
+                check_call(['git', 'checkout', '-b', '__mrsd_patched__',
+                    'initial'], cwd=eggdir)
+            except subprocess.CalledProcessError:
+                check_call(['git', 'checkout', 'master'], cwd=eggdir)
+                check_call(['git', 'branch', '-D', '__mrsd_patched__'], cwd=eggdir)
+                check_call(['git', 'checkout', '-b', '__mrsd_patched__',
+                    'initial'], cwd=eggdir)
+            for patch in patchdir.values():
+                check_call(['git', 'am', patch.abspath], cwd=eggdir)
 
     def __call__(self, pargs=None):
+        if self.root is None:
+            raise NeedToBeRooted
+        patches_dir = self.cfg['patches_dir']
+        self.patches_dir = patches_dir = os.path.join(
+                self.root,
+                patches_dir,
+                )
+        if not os.path.isdir(patches_dir):
+            os.mkdir(patches_dir)
         return pargs.action()
