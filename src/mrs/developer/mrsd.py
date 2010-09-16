@@ -78,12 +78,24 @@ try:
     import json
 except ImportError:
     import simplejson as json
-from subprocess import Popen, PIPE
+import subprocess
 
-mrsdpaths = Popen(
-       ["mrsd", "list", "cloned"],
-       stdout=PIPE,
-       ).communicate()[0]
+try:
+    mrsdpaths = subprocess.Popen(
+           ["./bin/mrsd", "list", "cloned"],
+           stdout=subprocess.PIPE,
+           ).communicate()[0]
+except OSError:
+    try:
+        mrsdpaths = subprocess.Popen(
+               ["mrsd", "list", "cloned"],
+               stdout=subprocess.PIPE,
+               ).communicate()[0]
+    except OSError:
+        import os
+        print "Please make mrsd available in ./bin/ or anywhere in your PATH:"
+        print os.environ['PATH']
+        sys.exit(1)
 if mrsdpaths:
     sys.path[0:0] = json.loads(mrsdpaths).values()
 %s"""
