@@ -18,6 +18,33 @@ class ConsoleScript(CmdSet):
     name = "mrsd"
 
     def __call__(self):
+        try:
+            if sys.argv[1] == "dance":
+                print r"""
+              .$$$$$.          .
+    |/()))))  $)'\$==. %%%%%%\%%\
+   / ((((==)  ') - $$$'===%%%%\'.|
+   |((((( <(   \-_/$$  )" _)%% )/|
+   | ())))_/._\._) //_.\_  %% ( /
+   | \_) /.--._\___/__.-.\ (.' /
+    \_ (   __._'_..'.__.   ) .'
+      \     )  (_.(_)/(     /
+       \\  /    \   /  \  //
+        )  \     ). \  /  (
+       / '  \   /    \|  ' \
+      (  |   | / \/   |   )_)
+       :-'-- /|  /   /|  /  \
+       _\|  / | / .-' | / '. \
+     _/  | /  \| (    ( \   '.\
+    ( ).'/ |   |  )   |  |   | \
+    /.' (_ /   | / )   \'|   |._)
+   .oO  | /    | \/     \|    \ |
+        |(     \  )   mrf)\    )_\
+  _____(__'-.___)/____..'__)___'._'.__
+"""
+                sys.exit(17)
+        except IndexError:
+            pass
         parser = argparse.ArgumentParser(
                 prog=self.name,
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter,
