@@ -2,7 +2,7 @@ Extensions are loaded before eggs. You need to run buildout once without
 loading the extension to generate egg-info for the develop egg and then run
 buildout normally:
 
-    % ./bin/buildout -c init.cfg
+    % ./bin/buildout -c dev.cfg
     ...
     % ./bin/buildout
     ...
