@@ -9,19 +9,32 @@ Implemented Use Cases
 =====================
 
 - run scripts in ./bin/ from anywhere in your buildout
-- run tests (for egg you are in, WIP)
+- run tests from anywhere in your buildout
 - customize eggs, generate and apply patches
 
 
 Run scripts from anywhere in your buildout
 ------------------------------------------
 
+You have a one terminal alway open where you are in the root of your buildout
+in order to run ``./bin/something`` from time to time?
+You don't need anymore, just call::
+
     % mrsd run <script> <arg1> ...
+
+from anywhere in your buildout and it will result in::
+
+    % ./bin/<script> <arg1> ...
+
+with working directory set to your buildout root.
+
 
 Run tests from anywhere in your buildout
 ----------------------------------------
+::
 
     % mrsd test
+
 
 Customize eggs
 --------------
