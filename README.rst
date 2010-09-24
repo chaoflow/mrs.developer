@@ -16,7 +16,7 @@ Implemented Use Cases
 Run scripts from anywhere in your buildout
 ------------------------------------------
 
-You have a one terminal alway open where you are in the root of your buildout
+You have one terminal always open where you are in the root of your buildout
 in order to run ``./bin/something`` from time to time?
 You don't need anymore, just call::
 
@@ -64,7 +64,7 @@ Generate patches from commits::
 
     % mrsd patch --generate
 
-Create clone eggs with patched branch::
+Create cloned eggs with patched branch::
 
     % mrsd patch --apply
 
