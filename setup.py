@@ -3,7 +3,7 @@ import os
 import sys
 
 version = '0'
-shortdesc = "Mrs. Developer"
+shortdesc = "Mrs. Developer intends to be useful for developers."
 longdesc = open(os.path.join(os.path.dirname(__file__), 'README.txt')).read()
 
 setup(name='mrs.developer',
@@ -11,8 +11,9 @@ setup(name='mrs.developer',
       description=shortdesc,
       long_description=longdesc,
       classifiers=[
-          "Programming Language :: Python",
+          "Development Status :: 3 - Alpha",
           "Framework :: Buildout",
+          "Programming Language :: Python",
           "Topic :: Software Development :: Libraries :: Python Modules",
       ], # Get strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       keywords='',
