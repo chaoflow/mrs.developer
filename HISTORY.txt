@@ -1,4 +1,4 @@
-0 (unreleased)
+0 (2010-09-25)
 --------------
 
 - initial release
