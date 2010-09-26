@@ -110,3 +110,9 @@ If ``mrsd`` is not in your path, the mrs.developer buildout extension will
 create it in ``./bin/``. However, in order to make full use of mrsd, it needs
 to be in your PATH. Don't link the one created by the extension, use a
 dedicated buildout or virtualenv to install mrsd gloablly.
+
+
+Requirements
+============
+
+- ``git >v1.7.0``, for generating and applying patches (``git status --porcelain``)
