@@ -6,6 +6,9 @@ import urllib
 import urllib2
 
 
+class default_value_string(str): pass
+
+
 class Reload(Cmd):
     """Reload code while zope instance is running using `plone.reload`.
     """
@@ -14,6 +17,23 @@ class Reload(Cmd):
         if not self.root:
             logger.error("Not rooted, run 'mrsd init'.")
             return
+
+        if pargs.instance:
+            # a instance is set, so let's override all default arguments
+            # with the instance configuration, but keep the non default
+            # argument values!
+
+            instance_config = None
+            for inst in self.cfg.get('reload', {}).get('instances', []):
+                if inst.get('name') == pargs.instance:
+                    instance_config = inst
+                    break
+
+            if instance_config:
+                for key, ivalue in instance_config.items():
+                    if isinstance(getattr(pargs, key, None),
+                                  default_value_string):
+                        setattr(pargs, key, ivalue)
 
         http_headers = {}
         http_data = {}
@@ -89,7 +109,7 @@ class Reload(Cmd):
 
         if self.cfg.get('reload', {}).get('instances'):
             instances = self.cfg['reload']['instances']
-            if len(instances) == 1:
+            if len(instances) > 1:
                 defaults = instances[0].copy()
 
         return defaults
@@ -111,29 +131,39 @@ class Reload(Cmd):
             '--user',
             dest='username',
             action='store',
-            default=defaults['username'],
+            default=default_value_string(defaults['username']),
             help='Zope-Username for logging into ZMI')
 
         parser.add_argument(
             '--pass',
             dest='password',
             action='store',
-            default=defaults['password'],
+            default=default_value_string(defaults['password']),
             help='Password of Zope-User (--user)')
 
         parser.add_argument(
             '--host',
             dest='host',
             action='store',
-            default=defaults['host'],
+            default=default_value_string(defaults['host']),
             help='Hostname where zope is running at')
 
         parser.add_argument(
             '--port',
             dest='port',
             action='store',
-            default=defaults['port'],
+            default=default_value_string(defaults['port']),
             help='Port where zope is running at')
+
+        # register known instances
+        if self.cfg.get('reload', {}).get('instances'):
+            names = [part['name'] for part
+                     in self.cfg.get('reload', {}).get('instances')]
+            parser.add_argument(
+                '--instance',
+                choices=names,
+                help='Select a zope instance to reload')
+
 
     def _configure(self, buildout):
         """Called by the unload extension if mrsd.developer is defined in
@@ -143,11 +173,15 @@ class Reload(Cmd):
         used as default values.
         """
 
-        self.cfg['reload']['instances'] = []
+        supported_recipes = ('collective.recipe.zope2cluster',
+                             'plone.recipe.zope2instance')
 
-        for partname, part in buildout.items():
+        enabled_parts = buildout['buildout'].get('parts')
+
+        for partname in enabled_parts:
+            part = buildout.get(partname)
             inst = {}
-            if part.get('recipe') == 'plone.recipe.zope2instance':
+            if part.get('recipe') in supported_recipes:
                 # we have a zope instance
 
                 # ... port
@@ -173,12 +207,7 @@ class Reload(Cmd):
                 # name
                 inst['name'] = partname
 
-            elif part.get('recipe') == 'collective.recipe.zope2cluster':
-                # we have a clustered zeo instance, which is copied from
-                # "instance-clone"
-                logger.log('zope2cluster not supported yet')
-
-            if inst:
-                self.cfg['reload']['instances'].append(inst)
+                if inst:
+                    self.cfg['reload']['instances'].append(inst)
 
         self.cmds.save_config()
