@@ -1,0 +1,69 @@
+mrsd reload
+===========
+
+The mrsd reload command reloads triggers `plone.reload`'s view for relading
+code without restarting Zope.
+
+Usage / requirements:
+
+- `plone.reload` is added to egg-section of your instance-part:
+- `mrs.developer` is added to buildout.cfg as extension
+
+Example buildout.cfg:
+..
+
+    [buildout]
+    parts =
+        instance2
+    extensions =
+        mrs.developer
+
+    [instance1]
+    recipe = plone.recipe.zope2instance
+    user = myadmin:pass
+    eggs =
+        Plone
+        plone.reload
+
+
+    [instance2]
+    recipe = plone.recipe.zope2instance
+    user = myadmin:pass
+    eggs =
+        Plone
+        plone.reload
+
+
+For reloading the code just run `mrsd reload` from somewhere within your
+buildout folder:
+
+
+.. code-block:: console
+
+    % ./bin/mrsd reload
+
+
+When buildout is run mrs.developer remembers which parts are configured.
+The instance part configuration is used by `mrsd reload` for guessing
+host, port, admin-username and -password.
+
+The default values are taken from the first instance-part defined in your
+buildout configuration. Following recipe types for instance parts are
+supported:
+
+- `collective.recipe.zope2cluster`
+- `plone.recipe.zope2instance`
+
+It's also possible to select another instance to reload:
+
+.. code-block:: console
+
+    % ./bin/mrsd reload --instance instance2
+
+
+By using arguments it's also possible to change the configuration used:
+
+.. code-block:: console
+
+    % ./bin/mrsd reload --instance instance2 --pass=very-secret
+
