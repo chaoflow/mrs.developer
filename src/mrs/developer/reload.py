@@ -1,5 +1,4 @@
 from mrs.developer.base import Cmd
-from mrs.developer.base import logger
 import base64
 import re
 import urllib
@@ -14,9 +13,13 @@ class Reload(Cmd):
     """
 
     def __call__(self, dists=None, pargs=None):
-        if not self.root:
-            logger.error("Not rooted, run 'mrsd init'.")
-            return
+        if pargs.list_instances:
+            names = []
+            for inst in self.cfg.get('reload', {}).get('instances', []):
+                name = inst.get('name')
+                if name:
+                    names.append(name)
+            return names
 
         if pargs.instance:
             # a instance is set, so let's override all default arguments
@@ -132,28 +135,28 @@ class Reload(Cmd):
             dest='username',
             action='store',
             default=default_value_string(defaults['username']),
-            help='Zope-Username for logging into ZMI')
+            help='Zope-Username for logging into ZMI.')
 
         parser.add_argument(
             '--pass',
             dest='password',
             action='store',
             default=default_value_string(defaults['password']),
-            help='Password of Zope-User (--user)')
+            help='Password of Zope-User (--user).')
 
         parser.add_argument(
             '--host',
             dest='host',
             action='store',
             default=default_value_string(defaults['host']),
-            help='Hostname where zope is running at')
+            help='Hostname where zope is running at.')
 
         parser.add_argument(
             '--port',
             dest='port',
             action='store',
             default=default_value_string(defaults['port']),
-            help='Port where zope is running at')
+            help='Port where zope is running at.')
 
         # register known instances
         if self.cfg.get('reload', {}).get('instances'):
@@ -162,8 +165,14 @@ class Reload(Cmd):
             parser.add_argument(
                 '--instance',
                 choices=names,
-                help='Select a zope instance to reload')
+                help='Select a zope instance to reload.')
 
+        parser.add_argument(
+            '--list-instances',
+            dest='list_instances',
+            action='store_true',
+            default=False,
+            help='Lists all available instances.')
 
     def _configure(self, buildout):
         """Called by the unload extension if mrsd.developer is defined in
@@ -178,10 +187,10 @@ class Reload(Cmd):
 
         enabled_parts = buildout['buildout'].get('parts')
 
-        for partname in enabled_parts:
+        for partname in enabled_parts.split():
             part = buildout.get(partname)
             inst = {}
-            if part.get('recipe') in supported_recipes:
+            if part and part.get('recipe') in supported_recipes:
                 # we have a zope instance
 
                 # ... port
