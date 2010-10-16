@@ -67,3 +67,22 @@ By using arguments it's also possible to change the configuration used:
 
     % ./bin/mrsd reload --instance instance2 --pass=very-secret
 
+
+Emacs integration
+-----------------
+
+If you want to reload the code from your emacs, you just need to create
+a small function:
+
+.. code-block:: elisp
+
+    (require 'json)
+
+    (defun mrsd-reload ()
+      (interactive)
+      (let* ((instances (json-read-from-string
+                         (shell-command-to-string "mrsd reload --list-instances")))
+             (instance (ido-completing-read "Instance: " (coerce instances 'list))))
+        (shell-command (concat "mrsd reload --instance " instance))))
+
+    (global-set-key (kbd "C-c f r") 'mrsd-reload)
