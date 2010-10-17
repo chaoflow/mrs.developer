@@ -4,7 +4,7 @@ import sys
 
 version = '0.0dev'
 shortdesc = "Mrs. Developer intends to be useful for developers."
-longdesc = open(os.path.join(os.path.dirname(__file__), 'README.txt')).read()
+longdesc = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read()
 
 setup(name='mrs.developer',
       version=version,
