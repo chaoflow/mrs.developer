@@ -45,6 +45,11 @@ class ConsoleScript(CmdSet):
                 sys.exit(17)
         except IndexError:
             pass
+        try:
+            self.load_config()
+        except RuntimeError:
+            # we run without a config file
+            pass
         parser = argparse.ArgumentParser(
                 prog=self.name,
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -79,11 +84,6 @@ class ConsoleScript(CmdSet):
             logging.basicConfig(level=logging.DEBUG)
         else:
             logging.basicConfig(level=logging.INFO)
-        try:
-            self.load_config()
-        except RuntimeError:
-            # we run without a config file
-            pass
         if self.root:
             logger.debug(u"Rooted at %s." % (self.root,))
         else:

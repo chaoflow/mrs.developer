@@ -63,6 +63,7 @@ class UnloadExtension(Extension):
     def __call__(self):
         self.cmdset.cmds['init']()
         self.cmdset.cmds['hookin']()
+        self.cmdset.cmds['reload']._configure(self.buildout)
 
 
 def load(buildout=None):
