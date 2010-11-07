@@ -21,7 +21,7 @@ class Reload(Cmd):
                     names.append(name)
             return names
 
-        if pargs.instance:
+        if getattr(pargs, 'instance', None):
             # a instance is set, so let's override all default arguments
             # with the instance configuration, but keep the non default
             # argument values!
