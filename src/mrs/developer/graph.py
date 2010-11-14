@@ -1,4 +1,5 @@
 from mrs.developer.base import logger
+from mrs.developer.distributions import PyScriptDir
 from mrs.developer.base import Cmd
 import sys
 import os
@@ -48,8 +49,26 @@ class Graph(Cmd):
             default=None,
             help='Create a dotfile with this name.')
 
+        mutual = parser.add_mutually_exclusive_group(required=False)
+
+        parser.add_argument(
+            '--follow', '-f',
+            dest='follow',
+            action='store_true',
+            default=False,
+            help='Add the direct dependencies of develop-dists to the graph.')
+
+        mutual.add_argument(
+            '--recursive', '-r',
+            dest='recursive',
+            action='store_true',
+            default=False,
+            help='Follow the dependencies of develop-dists recursively.')
+
 
     def __call__(self, dists=None, pargs=None):
+        self.pargs = pargs
+
         vertices = self.get_dependency_map()
 
         graph = pgv.AGraph(directed=True, layout='dot', mindist=1, mclimit=10,
@@ -76,6 +95,10 @@ class Graph(Cmd):
         # now lets mark circular dependencies red. they are evil.
         for pkg in node_names:
             depth_first_search(graph, vertices, pkg, [])
+
+        if len(node_names) > 150:
+            logger.warning('Building graph with %i nodes, ' % len(node_names) +\
+                               'this may take a while!')
 
         output_files = []
 
@@ -108,26 +131,31 @@ class Graph(Cmd):
         dependencies = {}
 
         for name in os.listdir(src_dir):
-            dir = os.path.join(src_dir, name)
+            path = os.path.join(src_dir, name)
 
             # is it a dir?
-            if not os.path.isdir(dir):
+            if not os.path.isdir(path):
                 continue
 
             # does it have a .egg-info?
-            egginfos = filter(lambda n: os.path.isdir(os.path.join(dir, n)) \
-                                  and n.endswith('.egg-info'), os.listdir(dir))
+            egginfos = filter(lambda n: os.path.isdir(os.path.join(path, n)) \
+                                  and n.endswith('.egg-info'), os.listdir(path))
 
             if len(egginfos) > 0:
                 pkgname, requires = self._read_egginfo(os.path.join(
-                        dir, egginfos[0]))
+                        path, egginfos[0]))
                 dependencies[pkgname] = requires
 
         return self._reduce_extras(dependencies)
 
-    def _reduce_extras(self, dependencies, remove_foreign_packages=True):
+    def _reduce_extras(self, dependencies):
         """Reduces extras dependending in the requires of the other dists.
         """
+
+        follow = self.pargs.follow or self.pargs.recursive
+        recursive = self.pargs.recursive
+
+
         # create data of dependencies without extras ..
         data = dict([(k, v['']) for k, v in dependencies.items()])
 
@@ -141,24 +169,40 @@ class Graph(Cmd):
                 for dep in deps:
 
                     if '[' in dep:
-                        subpkg, extra = dep.split(']', 1)[0].split('[', 1)
+                        subpkg, extras = dep.split(']', 1)[0].split('[', 1)
                         subpkg = subpkg.strip()
-                        extra = extra.strip()
+                        extras = [e.strip() for e in extras.split(',')]
+                    else:
+                        subpkg = dep.strip()
+                        extras = []
 
-                        if subpkg in dependencies.keys():
-                            changed = True
-                            data[subpkg] = list(set(data[subpkg] +
-                                                   dependencies[subpkg][extra]))
-                            new_deps.append(subpkg)
-                        elif not remove_foreign_packages:
-                            if subpkg not in data:
-                                data[subpkg] = []
-                            new_deps.append(subpkg)
+                    if subpkg not in dependencies and not follow:
+                        continue
 
-                    elif not remove_foreign_packages or dep in data.keys():
-                        if dep not in data:
-                            data[dep] = []
-                        new_deps.append(dep)
+                    if subpkg not in dependencies:
+                        changed = True
+
+                        if recursive:
+                            # add package to dependencies map
+                            name, requires = self._read_third_party_egginfo(subpkg)
+                            if not name:
+                                continue
+                        else:
+                            requires = {'': []}
+
+                        dependencies[subpkg] = requires
+                        data[subpkg] = requires['']
+
+                    if extras:
+                        changed = True
+                        for extra in extras:
+                            if extra not in dependencies[subpkg]:
+                                continue
+
+                            data[subpkg] = list(set(
+                                    data[subpkg] + dependencies[subpkg][extra]))
+
+                    new_deps.append(subpkg)
 
                 if set(deps) != set(new_deps):
                     changed = True
@@ -199,3 +243,27 @@ class Graph(Cmd):
                             '<', 1)[0].strip().replace(' ', ''))
 
         return name, requires
+
+    def _read_third_party_egginfo(self, pkgname):
+        """Reads and returns the egg-info of a third party packge. Returns
+        (None, None) if the package could not be found. Used when running
+        with --recursive.
+        """
+
+        if '_third_party_requires' not in dir(self):
+            self._third_party_requires = {}
+
+            psd = PyScriptDir(os.path.join(self.root, 'bin'))
+            for path in psd:
+                egginfo = os.path.join(path, 'EGG-INFO')
+                if not os.path.isdir(egginfo):
+                    continue
+
+                name, requires = self._read_egginfo(egginfo)
+                self._third_party_requires[name] = requires
+
+        # get it
+        if pkgname in self._third_party_requires:
+            return pkgname, self._third_party_requires[pkgname]
+        else:
+            return (None, None)
