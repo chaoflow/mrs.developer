@@ -108,7 +108,6 @@ class Graph(Cmd):
             output_files.append(pargs.dotfile)
 
         # now - create the output
-        graph.layout()
         graph.draw(pargs.filename, prog='dot')
         output_files.append(pargs.filename)
 
