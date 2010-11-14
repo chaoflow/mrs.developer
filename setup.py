@@ -57,6 +57,7 @@ setup(name='mrs.developer',
               'clone = mrs.developer.distributions:Clone',
               'patch = mrs.developer.distributions:Patch',
               'reload = mrs.developer.reload:Reload',
+              'graph = mrs.developer.graph:Graph',
           ]
       },
       )
