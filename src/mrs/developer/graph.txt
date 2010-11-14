@@ -1,0 +1,73 @@
+mrsd graph
+==========
+
+The mrsd graph command creates a dependency graph of the package in your
+src/ directory. It uses pygraphviz / graphviz.
+
+
+Installing / requirements:
+--------------------------
+
+You need to have pygraphviz installed in the python installation you are
+running mrsd with. Pygraphviz requires a graphviz installation. These
+depedencies are not automatically installed when installing mrs.developer.
+
+
+Installing graphviz:
+
+Graphviz is a open source graph visualization software. You can either
+install it with your favourite package manager (brew, port, nix, apt,
+etc) or you download it from the website:
+http://www.graphviz.org/
+
+
+Installing pygraphviz:
+
+Even tough pygraphviz is listed on pypi, the installation with easy_install
+may not work. It's recommended to download it either from pypi or from
+their website and install it by running "python setup.py install". But
+you may need to change the setup.py manually and uncomment the section
+where the path to the graphviz library is defined.
+You'll find further information on the project website:
+http://networkx.lanl.gov/pygraphviz/
+
+Usage
+-----
+
+Make shure that you have rootet mrs.developer in your buildout (using
+`mrsd init` or by adding it as buildout extension). Also keep in mind
+that the graph primary contains all eggs from your src directory
+(which is "${mrsd-root}/src"), because it is too heavy to render the
+graph when using frameworks such as zope and plone.
+
+Now you can just run it:
+
+.. code-block:: console
+
+    % mrsd graph
+
+
+There are some options such as changing the output filename or generating
+a graphviz .dot-file. Check the help for all options:
+
+.. code-block:: console
+
+    % mrsd graph --help
+
+
+It's also possible to tell mrsd graph which dependencies should be followed
+and added to graph:
+
+The default way is that all packages from the src directory are taken and
+only dependencies between theese packages are listed. Dependencies to other
+packages, which are not in the src directory are not listed, neither theese
+packages.
+
+When using `mrsd graph --follow` the dependencies from the packages in the
+src directory to other "third-party" packages are listed. Theese third-party
+packages are listed too, but their dependencies are not listed.
+
+When using `mrsd graph --recursive` the dependencies of third-party packages
+are listed too and followed. The dependencies are then followed to the end.
+This option may cause very heavy graphs and graphviz may have some minutes
+to render it.
