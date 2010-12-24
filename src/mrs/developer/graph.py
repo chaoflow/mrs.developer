@@ -7,12 +7,7 @@ import os
 try:
     import pygraphviz as pgv
 except ImportError:
-    print 'ERROR: could not import pygraphviz.'
-    print ''
-    print 'INSTALLATION:'
-    print '- install graphviz: http://www.graphviz.org/'
-    print '- install pygraphviz: http://networkx.lanl.gov/pygraphviz/'
-    sys.exit(0)
+    pgv = None
 
 
 def depth_first_search(graph, vertices, vertex, marked_vertices):
@@ -28,8 +23,10 @@ def depth_first_search(graph, vertices, vertex, marked_vertices):
 
 
 class Graph(Cmd):
-    """Create a dependency graph using `graphviz`.
+    """Create a dependency graph using ``graphviz``.
     """
+    if pgv is None:
+        __doc__ += 'DISABLED, run ``mrsd graph`` for more information.'
 
     def init_argparser(self, parser):
         """Add our arguments to a parser
@@ -67,6 +64,14 @@ class Graph(Cmd):
 
 
     def __call__(self, dists=None, pargs=None):
+        if pgv is None:
+            print 'ERROR: could not import pygraphviz.'
+            print ''
+            print 'INSTALLATION:'
+            print '- install graphviz: http://www.graphviz.org/'
+            print '- install pygraphviz: http://networkx.lanl.gov/pygraphviz/'
+            sys.exit(0)
+
         self.pargs = pargs
 
         vertices = self.get_dependency_map()
