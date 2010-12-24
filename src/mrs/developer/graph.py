@@ -23,7 +23,7 @@ def depth_first_search(graph, vertices, vertex, marked_vertices):
 
 
 class Graph(Cmd):
-    """Create a dependency graph using ``graphviz``.
+    """BROKEN: Create a dependency graph using ``graphviz``.
     """
     if pgv is None:
         __doc__ += 'DISABLED, run ``mrsd graph`` for more information.'
