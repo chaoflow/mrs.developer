@@ -156,11 +156,11 @@ class List(Cmd):
     def __call__(self, channels=None, pargs=None):
         """So far we just list all distributions used by the current env
         """
-        if not os.path.isdir(os.path.join(self.root, 'eggs-mrsd')):
-            os.mkdir(os.path.join(self.root, 'eggs-mrsd'))
         if not self.root:
             logger.error("Not rooted, run 'mrsd init'.")
             return
+        if not os.path.isdir(os.path.join(self.root, 'eggs-mrsd')):
+            os.mkdir(os.path.join(self.root, 'eggs-mrsd'))
         if channels is None:
             if pargs is not None:
                 channels = pargs.channel
